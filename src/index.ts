@@ -8,7 +8,7 @@ const typeDefs = `
             messages: [String]
         }
 
-        type Mutation {
+        type Send {
             sendMessage(nickname: String!, message: String!): Boolean
         }
 `;
@@ -19,7 +19,7 @@ const resolvers = {
           return messages;
       },
   },
-  Mutation: {
+  Send: {
       sendMessage: (parent, { nickname, message }) => {
           messages.push(`${nickname}: ${message}`);
           return true;
@@ -36,4 +36,4 @@ const { url } = await startStandaloneServer(server, {
   listen: { port: 4000 },
 });
 
-console.log(`🚀  Server ready at: ${url}`);
+console.log(`Server ready at: ${url}`);
