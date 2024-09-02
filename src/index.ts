@@ -8,7 +8,7 @@ const typeDefs = `
             messages: [String]
         }
 
-        type Send {
+        type Mutation {
             sendMessage(nickname: String!, message: String!): Boolean
         }
 `;
@@ -19,7 +19,7 @@ const resolvers = {
           return messages;
       },
   },
-  Send: {
+  Mutation: {
       sendMessage: (parent, { nickname, message }) => {
           messages.push(`${nickname}: ${message}`);
           return true;
