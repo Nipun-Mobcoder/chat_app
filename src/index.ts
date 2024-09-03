@@ -1,5 +1,19 @@
 import { ApolloServer } from '@apollo/server';
-import { startStandaloneServer } from '@apollo/server/standalone';
+import { PubSub } from 'graphql-subscriptions';
+import { expressMiddleware } from '@apollo/server/express4';
+import cors from 'cors';
+import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
+import express from 'express';
+import http from 'http';
+import { WebSocketServer } from 'ws';
+import { useServer } from 'graphql-ws/lib/use/ws';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+
+const app = express();
+
+const httpServer = http.createServer(app);
+
+const pubsub = new PubSub();
 
 let messages = [];
 
@@ -11,7 +25,12 @@ const typeDefs = `
         type Mutation {
             sendMessage(nickname: String!, message: String!): Boolean
         }
-`;
+
+        type Subscription {
+            messageAdded: String
+        }
+    `
+;
 
 const resolvers = {
   Query: {
@@ -21,19 +40,45 @@ const resolvers = {
   },
   Mutation: {
       sendMessage: (parent, { nickname, message }) => {
-          messages.push(`${nickname}: ${message}`);
-          return true;
+        const newMessage = `${nickname}: ${message}`;
+        messages.push(newMessage);
+        pubsub.publish('MESSAGE_ADDED', { messageAdded: newMessage });
+        return true;
       },
   },
+  Subscription: {
+    messageAdded: {
+        subscribe: () => pubsub.asyncIterator(['MESSAGE_ADDED']),
+      },
+  }
 };
+
+const schema = makeExecutableSchema({ typeDefs, resolvers })
 
 const server = new ApolloServer({
     typeDefs,
     resolvers,
+    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
   });
 
-const { url } = await startStandaloneServer(server, {
-  listen: { port: 4000 },
-});
+await server.start();
 
-console.log(`Server ready at: ${url}`);
+const wsServer = new WebSocketServer({
+    server: httpServer,
+    path: '/',
+    });
+    
+useServer({ schema }, wsServer);
+
+app.use(
+    '/',
+    cors<cors.CorsRequest>(),
+    express.json(),
+    expressMiddleware(server, {
+      context: async ({ req }) => ({ token: req.headers.token }),
+    }),
+  );
+  
+httpServer.listen(4000, () => {
+    console.log("Server ready at http://localhost:4000");
+});
