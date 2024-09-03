@@ -1,5 +1,4 @@
 import { ApolloServer } from '@apollo/server';
-import { PubSub } from 'graphql-subscriptions';
 import { expressMiddleware } from '@apollo/server/express4';
 import cors from 'cors';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
@@ -8,50 +7,20 @@ import http from 'http';
 import { WebSocketServer } from 'ws';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import { makeExecutableSchema } from '@graphql-tools/schema';
+import mongoose from 'mongoose';
+import jwt from "jsonwebtoken"
+import User from "./models/User.js"
+import resolvers from './resolver.js';
+import typeDefs from './typedef.js';
 
 const app = express();
 
 const httpServer = http.createServer(app);
 
-const pubsub = new PubSub();
+app.use(express.json())
 
-let messages = [];
-
-const typeDefs = `
-        type Query {
-            messages: [String]
-        }
-
-        type Mutation {
-            sendMessage(nickname: String!, message: String!): Boolean
-        }
-
-        type Subscription {
-            messageAdded: String
-        }
-    `
-;
-
-const resolvers = {
-  Query: {
-      messages: () => {
-          return messages;
-      },
-  },
-  Mutation: {
-      sendMessage: (parent, { nickname, message }) => {
-        const newMessage = `${nickname}: ${message}`;
-        messages.push(newMessage);
-        pubsub.publish('MESSAGE_ADDED', { messageAdded: newMessage });
-        return true;
-      },
-  },
-  Subscription: {
-    messageAdded: {
-        subscribe: () => pubsub.asyncIterator(['MESSAGE_ADDED']),
-      },
-  }
-};
+const uri = "mongodb+srv://nipunbhardwaj:E4K1qtXWLFY4w117@chatcluster.cqlok.mongodb.net/?retryWrites=true&w=majority&appName=chatCluster";
+const jwtSecret = "fasefraw4r5r3wq45wdfgw34twdfg";
 
 const schema = makeExecutableSchema({ typeDefs, resolvers })
 
@@ -65,19 +34,65 @@ await server.start();
 
 const wsServer = new WebSocketServer({
     server: httpServer,
-    path: '/',
+    path: '/graphql',
     });
     
 useServer({ schema }, wsServer);
 
 app.use(
-    '/',
+    '/graphql',
     cors<cors.CorsRequest>(),
     express.json(),
     expressMiddleware(server, {
       context: async ({ req }) => ({ token: req.headers.token }),
     }),
   );
+
+  app.post("/register", async (req,res) => {
+    await mongoose.connect(uri);
+    const {userName, email, password} = req.body;
+
+    try {
+        const userDoc = await User.create({
+          userName,
+          email,
+          password
+        });
+        res.json(userDoc);
+      } catch (e) {
+        res.status(422).json(e);
+      }
+  })
+
+  app.post("/login", async (req, res) => {
+    mongoose.connect(uri);
+    const { email, password } = req.body;
+    const userDoc = await User.findOne({ email });
+    console.log(userDoc);
+    if (userDoc) {
+      if (password === userDoc.password) {
+        jwt.sign(
+          {
+            email: userDoc.email,
+            id: userDoc._id,
+          },
+          jwtSecret,
+          {},
+          (err, token) => {
+            if (err) throw err;
+            res
+              .cookie("token", token, { sameSite: "none", secure: true })
+              .json(userDoc);
+            console.log(token);
+          }
+        );
+      } else {
+        res.status(422).json("pass not ok");
+      }
+    } else {
+      res.json("not found");
+    }
+  });
   
 httpServer.listen(4000, () => {
     console.log("Server ready at http://localhost:4000");
