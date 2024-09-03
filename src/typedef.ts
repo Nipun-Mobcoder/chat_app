@@ -4,7 +4,7 @@ const typeDefs = `
         }
 
         type Mutation {
-            sendMessage(nickname: String!, message: String!): Boolean
+            sendMessage(to: String!, message: String!): String
         }
 
         type Subscription {

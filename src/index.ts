@@ -68,7 +68,6 @@ app.use(
     mongoose.connect(uri);
     const { email, password } = req.body;
     const userDoc = await User.findOne({ email });
-    console.log(userDoc);
     if (userDoc) {
       if (password === userDoc.password) {
         jwt.sign(
@@ -80,9 +79,7 @@ app.use(
           {},
           (err, token) => {
             if (err) throw err;
-            res
-              .cookie("token", token, { sameSite: "none", secure: true })
-              .json(userDoc);
+            res.json(token);
             console.log(token);
           }
         );
@@ -90,7 +87,7 @@ app.use(
         res.status(422).json("pass not ok");
       }
     } else {
-      res.json("not found");
+      res.status(404).json("not found");
     }
   });
   
