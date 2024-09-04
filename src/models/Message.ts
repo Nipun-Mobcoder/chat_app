@@ -6,6 +6,7 @@ const MessageSchema = new Schema({
   sender: String,
   message: String,
   to: String,
+  senderName: String
 });
 
 const Message = mongoose.model("Message", MessageSchema);

@@ -17,7 +17,8 @@ const loadMessagesFromDB = async () => {
     await mongoose.connect(uri);
     const dbMessages = await Message.find({});
     dbMessages.forEach(msg => {
-      const formattedMessage = `${msg.sender}: ${msg.message}`;
+      const name = msg.senderName ?? msg.sender;
+      const formattedMessage = `${name}: ${msg.message}`;
       messages.push(formattedMessage);
     });
   } catch (error) {
@@ -37,7 +38,7 @@ const resolvers = {
       sendMessage: async (parent, { to, message }, context: any) => {
         try {
           await mongoose.connect(uri);
-          const userData : {id: string, email: string} = await new Promise((resolve, reject) => {
+          const userData : {id: string, userName: string} = await new Promise((resolve, reject) => {
             jwt.verify(context.token, jwtSecret, (err, decoded) => {
               if (err) {
                 reject(err);
@@ -46,9 +47,9 @@ const resolvers = {
               }
             });
           });
-  
-          const { id, email } = userData;
-          const newMessage = `${id}: ${message}`;
+          console.log(userData)
+          const { id, userName } = userData;
+          const newMessage = `${userName}: ${message}`;
           messages.push(newMessage);
   
           pubsub.publish('MESSAGE_ADDED', {
@@ -59,7 +60,8 @@ const resolvers = {
             await Message.create({
               sender: id,
               message,
-              to
+              to,
+              senderName: userName
             });
           } catch (error) {
             return error.message;
@@ -71,9 +73,6 @@ const resolvers = {
       },
     },
     Subscription: {
-      messageAdded: {
-          subscribe: () => pubsub.asyncIterator(['MESSAGE_ADDED']),
-        },
         showMessages: {
           subscribe: withFilter(
             () => pubsub.asyncIterator(['MESSAGE_ADDED']),

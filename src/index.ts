@@ -77,6 +77,7 @@ app.use(
           {
             email: userDoc.email,
             id: userDoc._id,
+            userName: userDoc.userName
           },
           jwtSecret,
           {},
