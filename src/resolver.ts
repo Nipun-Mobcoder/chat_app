@@ -12,26 +12,38 @@ const pubsub = new PubSub();
 const uri = process.env.MONGO_URL;
 const jwtSecret = process.env.JWT_Secret;
 
-const loadMessagesFromDB = async () => {
-  try {
-    await mongoose.connect(uri);
-    const dbMessages = await Message.find({});
-    dbMessages.forEach(msg => {
-      const name = msg.senderName ?? msg.sender;
-      const formattedMessage = `${name}: ${msg.message}`;
-      messages.push(formattedMessage);
-    });
-  } catch (error) {
-    console.error("Error loading messages from the database:", error);
-  }
-};
-
-await loadMessagesFromDB();
-
 const resolvers = {
     Query: {
-        messages: () => {
-            return messages;
+        messages: async (parent, {}, context: any) => {
+          try {
+            await mongoose.connect(uri);
+            const userData : {id: string, userName: string} = await new Promise((resolve, reject) => {
+              jwt.verify(context.token, jwtSecret, (err, decoded) => {
+                if (err) {
+                  reject(err);
+                } else {
+                  resolve(decoded);
+                }
+              });
+            });
+            const { id } = userData;
+            const dbMessages = await Message.find({
+              $or: [
+                { to: id },
+                { sender: id }
+              ]
+            });
+            dbMessages.forEach(msg => {
+              const name = msg.senderName ?? msg.sender;
+              const formattedMessage = `${name}: ${msg.message}`;
+              messages.push(formattedMessage);
+            });
+          } catch (error) {
+            console.error("Error loading messages from the database:", error);
+          }
+          const allMessages = messages;
+          messages = [];
+          return allMessages;
         },
     },
     Mutation: {
@@ -47,10 +59,8 @@ const resolvers = {
               }
             });
           });
-          console.log(userData)
           const { id, userName } = userData;
           const newMessage = `${userName}: ${message}`;
-          messages.push(newMessage);
   
           pubsub.publish('MESSAGE_ADDED', {
             showMessages: newMessage ,to
