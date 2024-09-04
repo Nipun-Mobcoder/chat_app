@@ -12,6 +12,9 @@ import jwt from "jsonwebtoken"
 import User from "./models/User.js"
 import resolvers from './resolver.js';
 import typeDefs from './typedef.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 
@@ -19,8 +22,8 @@ const httpServer = http.createServer(app);
 
 app.use(express.json())
 
-const uri = "mongodb+srv://nipunbhardwaj:E4K1qtXWLFY4w117@chatcluster.cqlok.mongodb.net/?retryWrites=true&w=majority&appName=chatCluster";
-const jwtSecret = "fasefraw4r5r3wq45wdfgw34twdfg";
+const uri = process.env.MONGO_URL;
+const jwtSecret = process.env.JWT_Secret;
 
 const schema = makeExecutableSchema({ typeDefs, resolvers })
 
@@ -80,7 +83,6 @@ app.use(
           (err, token) => {
             if (err) throw err;
             res.json(token);
-            console.log(token);
           }
         );
       } else {

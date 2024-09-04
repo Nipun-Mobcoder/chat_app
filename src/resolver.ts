@@ -2,11 +2,14 @@ import { PubSub } from 'graphql-subscriptions';
 import jwt from "jsonwebtoken"
 import Message from "./models/Message.js"
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 let messages = [];
 const pubsub = new PubSub();
-const uri = "mongodb+srv://nipunbhardwaj:E4K1qtXWLFY4w117@chatcluster.cqlok.mongodb.net/?retryWrites=true&w=majority&appName=chatCluster";
-const jwtSecret = "fasefraw4r5r3wq45wdfgw34twdfg";
+const uri = process.env.MONGO_URL;
+const jwtSecret = process.env.JWT_Secret;
 
 const loadMessagesFromDB = async () => {
   try {
@@ -48,7 +51,7 @@ const resolvers = {
           messages.push(newMessage);
   
           pubsub.publish('MESSAGE_ADDED', {
-            messageAdded: newMessage + `\nthis message is for: ${to}`,to,
+            messageAdded: newMessage + `This message is for: ${to}`,to,
           });
 
           try {
