@@ -2,6 +2,7 @@ import { PubSub } from 'graphql-subscriptions';
 import jwt from "jsonwebtoken"
 import Message from "./models/Message.js"
 import mongoose from 'mongoose';
+import { withFilter } from 'graphql-subscriptions';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -51,7 +52,7 @@ const resolvers = {
           messages.push(newMessage);
   
           pubsub.publish('MESSAGE_ADDED', {
-            messageAdded: newMessage + `This message is for: ${to}`,to,
+            showMessages: newMessage ,to
           });
 
           try {
@@ -73,6 +74,30 @@ const resolvers = {
       messageAdded: {
           subscribe: () => pubsub.asyncIterator(['MESSAGE_ADDED']),
         },
+        showMessages: {
+          subscribe: withFilter(
+            () => pubsub.asyncIterator(['MESSAGE_ADDED']),
+            async (payload, variables) => {
+              try {
+                const userData:any = await new Promise((resolve, reject) => {
+                  jwt.verify(variables.tokenId, jwtSecret, (err, decoded) => {
+                    if (err) {
+                      reject(err);
+                    } else {
+                      resolve(decoded);
+                    }
+                  });
+                });
+        
+                const { id } = userData;
+                return payload.to === id;
+              } catch (error) {
+                console.error("Error verifying token:", error);
+                return false;
+              }
+            }
+          ),
+        }
     }
   };
 

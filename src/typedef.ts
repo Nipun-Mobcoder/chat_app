@@ -9,6 +9,7 @@ const typeDefs = `
 
         type Subscription {
             messageAdded: String
+            showMessages(tokenId: String!): String
         }
     `
 ;
