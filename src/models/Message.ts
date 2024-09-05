@@ -2,12 +2,19 @@ import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
 
+const FileSchema = new Schema({
+  filename: String,
+  mimetype: String,
+  url: String,
+});
+
 const MessageSchema = new Schema({
   sender: String,
   message: String,
   to: String,
-  senderName: String
-});
+  senderName: String,
+  file: FileSchema,
+}, { timestamps: true });
 
 const Message = mongoose.model("Message", MessageSchema);
 

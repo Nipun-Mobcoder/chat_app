@@ -9,10 +9,12 @@ import { useServer } from 'graphql-ws/lib/use/ws';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import mongoose from 'mongoose';
 import jwt from "jsonwebtoken"
+import dotenv from 'dotenv';
+import { graphqlUploadExpress } from 'graphql-upload-ts';
+
 import User from "./models/User.js"
 import resolvers from './resolver.js';
 import typeDefs from './typedef.js';
-import dotenv from 'dotenv';
 
 dotenv.config();
 
@@ -30,6 +32,7 @@ const schema = makeExecutableSchema({ typeDefs, resolvers })
 const server = new ApolloServer({
     typeDefs,
     resolvers,
+    csrfPrevention: true,
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
   });
 
@@ -46,6 +49,7 @@ app.use(
     '/graphql',
     cors<cors.CorsRequest>(),
     express.json(),
+    graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }),
     expressMiddleware(server, {
       context: async ({ req }) => ({ token: req.headers.token }),
     }),

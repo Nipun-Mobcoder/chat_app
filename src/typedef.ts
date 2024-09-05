@@ -1,17 +1,32 @@
 const typeDefs = `
-        type Query {
-            messages: [String]
-        }
 
-        type Mutation {
-            sendMessage(to: String!, message: String!): String
-        }
+    scalar Upload
 
-        type Subscription {
-            messageAdded: String
-            showMessages(tokenId: String!): String
-        }
-    `
-;
+    type Message {
+        id: ID!
+        sender: String
+        message: String
+        file: File
+    }
+
+    type File {
+        filename: String
+        mimetype: String
+        url: String
+    }
+
+    type Query {
+        messages: [Message]
+    }
+
+    type Mutation {
+        sendMessage(to: String!, message: String, file: Upload): String
+    }
+
+    type Subscription {
+        showMessages(tokenId: String!): Message
+    }
+
+`;
 
 export default typeDefs;
