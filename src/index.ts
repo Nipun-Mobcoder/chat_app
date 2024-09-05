@@ -48,7 +48,6 @@ const wsServer = new WebSocketServer({
 });
 useServer({ schema }, wsServer);
 
-// Connect to the database and start the server
 connectDB();
 httpServer.listen(4000, () => {
   console.log("Server ready at http://localhost:4000");

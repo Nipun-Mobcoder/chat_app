@@ -97,7 +97,4 @@ const messageResolver = {
 };
 
 export default messageResolver;
-function uuidv4() {
-  throw new Error("Function not implemented.");
-}
 
