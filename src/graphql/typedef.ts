@@ -9,6 +9,12 @@ const typeDefs = `
         file: File
     }
 
+    type User {
+        id: ID!
+        userName: String!
+        email: String!
+    }
+
     type File {
         filename: String
         mimetype: String
@@ -20,6 +26,8 @@ const typeDefs = `
     }
 
     type Mutation {
+        register(userName: String!, email: String!, password: String!): User
+        login(email: String!, password: String!): String,
         sendMessage(to: String!, message: String, file: Upload): String
     }
 
