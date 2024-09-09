@@ -7,97 +7,48 @@ import http from 'http';
 import { WebSocketServer } from 'ws';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import mongoose from 'mongoose';
-import jwt from "jsonwebtoken"
 import dotenv from 'dotenv';
 import { graphqlUploadExpress } from 'graphql-upload-ts';
 
-import User from "./models/User.js"
-import resolvers from './resolver.js';
-import typeDefs from './typedef.js';
+import typeDefs from './graphql/typedef.js';
+import resolvers from './graphql/resolvers/index.js';
+import connectDB from './config/db.js';
 
 dotenv.config();
 
 const app = express();
-
 const httpServer = http.createServer(app);
 
-app.use(express.json())
+app.use(express.json());
 
-const uri = process.env.MONGO_URL;
-const jwtSecret = process.env.JWT_Secret;
-
-const schema = makeExecutableSchema({ typeDefs, resolvers })
+const schema = makeExecutableSchema({ typeDefs, resolvers });
 
 const server = new ApolloServer({
-    typeDefs,
-    resolvers,
-    csrfPrevention: true,
-    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
-  });
+  typeDefs,
+  resolvers,
+  csrfPrevention: true,
+  plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+});
 
 await server.start();
 
+app.use(
+  '/graphql',
+  cors<cors.CorsRequest>(),
+  express.json(),
+  graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }),
+  expressMiddleware(server, {
+    context: async ({ req }) => ({ token: req.headers.token }),
+  }),
+);
+
 const wsServer = new WebSocketServer({
-    server: httpServer,
-    path: '/graphql',
-    });
-    
+  server: httpServer,
+  path: '/graphql',
+});
 useServer({ schema }, wsServer);
 
-app.use(
-    '/graphql',
-    cors<cors.CorsRequest>(),
-    express.json(),
-    graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }),
-    expressMiddleware(server, {
-      context: async ({ req }) => ({ token: req.headers.token }),
-    }),
-  );
-
-  app.post("/register", async (req,res) => {
-    await mongoose.connect(uri);
-    const {userName, email, password} = req.body;
-
-    try {
-        const userDoc = await User.create({
-          userName,
-          email,
-          password
-        });
-        res.json(userDoc);
-      } catch (e) {
-        res.status(422).json(e);
-      }
-  })
-
-  app.post("/login", async (req, res) => {
-    mongoose.connect(uri);
-    const { email, password } = req.body;
-    const userDoc = await User.findOne({ email });
-    if (userDoc) {
-      if (password === userDoc.password) {
-        jwt.sign(
-          {
-            email: userDoc.email,
-            id: userDoc._id,
-            userName: userDoc.userName
-          },
-          jwtSecret,
-          {},
-          (err, token) => {
-            if (err) throw err;
-            res.json(token);
-          }
-        );
-      } else {
-        res.status(422).json("pass not ok");
-      }
-    } else {
-      res.status(404).json("not found");
-    }
-  });
-  
+connectDB();
 httpServer.listen(4000, () => {
-    console.log("Server ready at http://localhost:4000");
+  console.log("Server ready at http://localhost:4000");
 });
