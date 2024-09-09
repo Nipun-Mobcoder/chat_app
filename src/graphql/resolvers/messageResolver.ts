@@ -2,7 +2,7 @@ import Message from "../../models/Message.js";
 import { PubSub } from 'graphql-subscriptions';
 import { withFilter } from 'graphql-subscriptions';
 import { getUserFromToken } from '../../utils/jwt.js';
-import { getPresignedUrl, uploadToS3 } from '../../utils/s3.js';
+import { getPresignedUrl, s3, uploadToS3 } from '../../utils/s3.js';
 import { GraphQLUpload } from "graphql-upload-ts";
 
 const pubsub = new PubSub();
@@ -66,7 +66,9 @@ const messageResolver = {
         };
 
         pubsub.publish('MESSAGE_ADDED', {
-          showMessages: newMessage ,to, id
+          showMessages: newMessage,
+          to,
+          id,
         });
 
         try {
@@ -82,11 +84,66 @@ const messageResolver = {
         }
     return "Message sent successfully";
     },
+      complete: async (_: any, { fileName, uploadId, parts, to }, context: { token: string }) => {
+        const userData: { id: string, userName: string } = await getUserFromToken(context.token);
+        const { id, userName } = userData;
+  
+        const params = {
+          Bucket: process.env.S3_BUCKET_NAME,
+          Key: fileName,
+          UploadId: uploadId,
+          MultipartUpload: {
+            Parts: parts.map((part, index) => ({
+              ETag: part.etag,
+              PartNumber: index + 1,
+            })),
+          },
+        };
+  
+        try {
+          const data = await s3.completeMultipartUpload(params).promise();
+          const fileUrl = data.Location;
+          const presignedUrl = await getPresignedUrl(data.Key);
+          const newMessage = {
+            id,
+            sender: userName,
+            message: '',
+            file: {
+              filename: fileName,
+              mimetype: 'video/mp4',
+              url: presignedUrl,
+            },
+            to,
+          };
+  
+          pubsub.publish('FILE_ADDED', {
+            showMessages: newMessage,
+            to,
+            id,
+          });
+  
+          await Message.create({
+            sender: id,
+            message: '',
+            to,
+            senderName: userName,
+            file: {
+              filename: fileName,
+              url: fileUrl,
+            },
+          });
+  
+          return "Message sent successfully";
+        } catch (error) {
+          console.error("Error completing multipart upload:", error);
+          throw new Error("Failed to complete multipart upload.");
+        }
+    },
   },
   Subscription: {
     showMessages: {
       subscribe: withFilter(
-        () => pubsub.asyncIterator(['MESSAGE_ADDED']),
+        () => pubsub.asyncIterator(['MESSAGE_ADDED','FILE_ADDED']),
         async (payload, variables) => {
           const userData : { id: string, userName: string } = await getUserFromToken(variables.tokenId);
           return payload.to === userData.id || payload.id === userData.id;
