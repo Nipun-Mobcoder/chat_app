@@ -22,11 +22,11 @@ const typeDefs = `
 
     type Query {
         messages: [Message]
+        login(email: String!, password: String!): String
     }
 
     type Mutation {
         register(userName: String!, email: String!, password: String!): User
-        login(email: String!, password: String!): String,
         sendMessage(to: String!, message: String, file: Upload): String
     }
 

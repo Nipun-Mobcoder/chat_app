@@ -10,7 +10,7 @@ const pubsub = new PubSub();
 const messageResolver = {
   Upload: GraphQLUpload,
   Query: {
-    messages: async (parent, args, context) => {
+    messages: async (_ : any, __: {}, context: { token : string }) => {
       const userData : { id: string } = await getUserFromToken(context.token);
       const { id } = userData;
       const dbMessages = await Message.find({
@@ -29,7 +29,7 @@ const messageResolver = {
     },
   },
   Mutation: {
-    sendMessage: async (parent, { to, message, file }, context) => {
+    sendMessage: async (_: any, { to, message, file }: any, context: { token: string }) => {
       const userData : { id: string, userName: string } = await getUserFromToken(context.token);
         let fileData = null;
         let subfileData = null;
@@ -66,7 +66,7 @@ const messageResolver = {
         };
 
         pubsub.publish('MESSAGE_ADDED', {
-          showMessages: newMessage ,to
+          showMessages: newMessage ,to, id
         });
 
         try {
@@ -89,7 +89,7 @@ const messageResolver = {
         () => pubsub.asyncIterator(['MESSAGE_ADDED']),
         async (payload, variables) => {
           const userData : { id: string, userName: string } = await getUserFromToken(variables.tokenId);
-          return payload.to === userData.id;
+          return payload.to === userData.id || payload.id === userData.id;
         }
       ),
     },
@@ -97,4 +97,3 @@ const messageResolver = {
 };
 
 export default messageResolver;
-

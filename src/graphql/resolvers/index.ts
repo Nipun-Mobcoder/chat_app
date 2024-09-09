@@ -6,6 +6,7 @@ const resolvers = {
   Upload: GraphQLUpload,
   Query: {
     ...messageResolver.Query,
+    ...authResolver.Query,
   },
   Mutation: {
     ...messageResolver.Mutation,

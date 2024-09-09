@@ -10,7 +10,7 @@ const s3 = new AWS.S3({
   region: process.env.AWS_REGION,
 });
 
-export const uploadToS3 = (fileStream, filename, mimetype) => {
+export const uploadToS3 = (fileStream: any, filename: string, mimetype: string) => {
   const s3Params = {
     Bucket: process.env.S3_BUCKET_NAME,
     Key: `${uuidv4()}-${filename}`,
@@ -20,7 +20,7 @@ export const uploadToS3 = (fileStream, filename, mimetype) => {
   return s3.upload(s3Params).promise();
 };
 
-export const getPresignedUrl = (key) => {
+export const getPresignedUrl = (key: string) => {
   const s3Params = {
     Bucket: process.env.S3_BUCKET_NAME,
     Key: key,
