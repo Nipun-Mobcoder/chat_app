@@ -1,4 +1,4 @@
-# Chat Up - A Real-Time Chat Application
+# Chat Up [This is the Backend] - A Real-Time Chat Application
 
 Welcome to **Chat Up**, a real-time chat application built with Node.js, Express, GraphQL, MongoDB, and React. The app allows users to exchange messages in real-time with the ability to authenticate using JWT tokens and store chat data in a MongoDB database.
 
