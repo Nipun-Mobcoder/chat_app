@@ -7,6 +7,7 @@ const typeDefs = `
         sender: String
         message: String
         file: File
+        createdAt: String
     }
 
     type User {
@@ -29,9 +30,15 @@ const typeDefs = `
         status: Int
     }
 
+    type loginResponse {
+        token: String
+        name: String
+    }
+
     type Query {
         messages: [Message]
-        login(email: String!, password: String!): String
+        showUserMessage(sender: String!): [Message]
+        login(email: String!, password: String!): loginResponse
         startMultipart(fileName: String!, contentType: String!): String
         generateMultipart(fileName: String!, uploadId: String!, partNumbers: Int!): [String]
     }
@@ -44,6 +51,7 @@ const typeDefs = `
 
     type Subscription {
         showMessages(tokenId: String!): Message
+        showUsersMessages(tokenId: String!, userId: String!): Message
     }
 
 `;

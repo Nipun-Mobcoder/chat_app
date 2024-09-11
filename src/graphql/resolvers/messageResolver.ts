@@ -16,7 +16,6 @@ const messageResolver = {
       const dbMessages = await Message.find({
         $or: [{ to: id }, { sender: id }]
       });
-
       return dbMessages.map(async (msg) => {
         let file = null;
         if (msg.file) {
@@ -24,7 +23,39 @@ const messageResolver = {
           const presignedUrl = await getPresignedUrl(key);
           file = { filename: msg.file.filename, mimetype: msg.file.mimetype, url: presignedUrl };
         }
-        return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file };
+        var formattedTime;
+        if(msg.createdAt){
+          const date = new Date(msg.createdAt)
+          var hours = date.getHours();
+          var minutes = "0" + date.getMinutes();
+
+          formattedTime = hours + ':' + minutes.substr(-2);
+        }
+        return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00" };
+      });
+    },
+    showUserMessage: async (_ : any, {sender}, context: { token : string }) => {
+      const userData : { id: string } = await getUserFromToken(context.token);
+      const { id } = userData;
+      const dbMessages = await Message.find({
+        $or: [{$and:[ {to: id}, {sender: sender}] }, { $and:[ {sender: id}, {to: sender}] }]
+      });
+      return dbMessages.map(async (msg) => {
+        let file = null;
+        if (msg.file) {
+          const key = msg.file.url.split('/').pop();
+          const presignedUrl = await getPresignedUrl(key);
+          file = { filename: msg.file.filename, mimetype: msg.file.mimetype, url: presignedUrl };
+        }
+        var formattedTime;
+        if(msg.createdAt){
+          const date = new Date(msg.createdAt)
+          var hours = date.getHours();
+          var minutes = "0" + date.getMinutes();
+
+          formattedTime = hours + ':' + minutes.substr(-2);
+        }
+        return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00" };
       });
     },
   },
@@ -56,7 +87,6 @@ const messageResolver = {
         }
 
         const { id, userName } = userData;
-
         const newMessage = {
           id,
           sender: userName,
@@ -67,6 +97,7 @@ const messageResolver = {
 
         pubsub.publish('MESSAGE_ADDED', {
           showMessages: newMessage,
+          showUsersMessages: newMessage,
           to,
           id,
         });
@@ -118,8 +149,9 @@ const messageResolver = {
   
           pubsub.publish('FILE_ADDED', {
             showMessages: newMessage,
+            showUsersMessages: newMessage,
             to,
-            id,
+            id
           });
   
           await Message.create({
@@ -147,6 +179,15 @@ const messageResolver = {
         async (payload, variables) => {
           const userData : { id: string, userName: string } = await getUserFromToken(variables.tokenId);
           return payload.to === userData.id || payload.id === userData.id;
+        }
+      ),
+    },
+    showUsersMessages: {
+      subscribe: withFilter(
+        () => pubsub.asyncIterator(['MESSAGE_ADDED','FILE_ADDED']),
+        async (payload, variables) => {
+          const userData : { id: string, userName: string } = await getUserFromToken(variables.tokenId);
+          return ( payload.to === userData.id && payload.id === variables.userId ) || ( payload.id === userData.id && payload.to === variables.userId ) ;
         }
       ),
     },

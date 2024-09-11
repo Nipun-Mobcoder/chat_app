@@ -7,7 +7,7 @@ const authResolver = {
       const userDoc = await User.findOne({ email });
       if (userDoc && password === userDoc.password) {
         const token = jwt.sign({ email: userDoc.email, id: userDoc._id, userName: userDoc.userName }, process.env.JWT_Secret);
-        return token;
+        return {token, name: userDoc.userName};
       } else {
         throw new Error("Invalid credentials");
       }
