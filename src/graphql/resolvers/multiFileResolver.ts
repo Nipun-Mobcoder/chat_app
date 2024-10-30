@@ -1,4 +1,3 @@
-import { getUserFromToken } from '../../utils/jwt.js';
 import { s3 } from '../../utils/s3.js';
 import { GraphQLUpload } from "graphql-upload-ts";
 
@@ -6,15 +5,20 @@ const multiFileResolver = {
   Upload: GraphQLUpload,
   Query: {
     startMultipart: async (_: any, { fileName, contentType }, context: { token: string }) => {
-      const params = {
-        Bucket: process.env.S3_BUCKET_NAME,
-        Key: fileName,
-        ContentDisposition: contentType === "VIDEO" ? "inline" : "attachment",
-        ContentType: contentType === "VIDEO" ? "video/mp4" : "application/octet-stream",
-      };
-
-      const multipart = await s3.createMultipartUpload(params).promise();
-      return multipart.UploadId;
+      try {
+        const params = {
+          Bucket: process.env.S3_BUCKET_NAME,
+          Key: fileName,
+          ContentDisposition: contentType === "VIDEO" ? "inline" : "attachment",
+          ContentType: contentType === "VIDEO" ? "video/mp4" : "application/octet-stream",
+        };
+  
+        const multipart = await s3.createMultipartUpload(params).promise();
+        return multipart.UploadId;
+      } catch (error) {
+        console.log(error);
+        throw new Error(error?.message ?? "Looks like something went wrong.");
+      }
     },
 
     generateMultipart: async (_: any, { fileName, uploadId, partNumbers }, context: { token: string }) => {

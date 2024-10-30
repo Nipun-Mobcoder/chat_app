@@ -27,9 +27,9 @@ const messageResolver = {
         if(msg.createdAt){
           const date = new Date(msg.createdAt)
           var hours = date.getHours();
-          var minutes = "0" + date.getMinutes();
+          var minutes = date.getMinutes();
 
-          formattedTime = hours + ':' + minutes.substr(-2);
+          formattedTime = hours + ':' + minutes.toString().padStart(2, "0");
         }
         return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00" };
       });
@@ -51,9 +51,9 @@ const messageResolver = {
         if(msg.createdAt){
           const date = new Date(msg.createdAt)
           var hours = date.getHours();
-          var minutes = "0" + date.getMinutes();
+          var minutes = date.getMinutes();
 
-          formattedTime = hours + ':' + minutes.substr(-2);
+          formattedTime = hours + ':' + minutes.toString().padStart(2, "0");
         }
         return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00" };
       });
@@ -187,7 +187,8 @@ const messageResolver = {
         () => pubsub.asyncIterator(['MESSAGE_ADDED','FILE_ADDED']),
         async (payload, variables) => {
           const userData : { id: string, userName: string } = await getUserFromToken(variables.tokenId);
-          return ( payload.to === userData.id && payload.id === variables.userId ) || ( payload.id === userData.id && payload.to === variables.userId ) ;
+          return ( payload.to === userData.id && payload.id === variables.userId )
+           || ( payload.id === userData.id && payload.to === variables.userId ) ;
         }
       ),
     },

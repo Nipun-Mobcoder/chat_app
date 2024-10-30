@@ -8,6 +8,7 @@ const typeDefs = `
         message: String
         file: File
         createdAt: String
+        to: String
     }
 
     type User {
@@ -35,12 +36,25 @@ const typeDefs = `
         name: String
     }
 
+    type allUser {
+        id: String
+        user: String
+    }
+
+    type paginationType {
+        messages: [Message]
+        totalPage: Int!
+        nextPageNumber: Int!
+    }
+
     type Query {
         messages: [Message]
         showUserMessage(sender: String!): [Message]
         login(email: String!, password: String!): loginResponse
         startMultipart(fileName: String!, contentType: String!): String
         generateMultipart(fileName: String!, uploadId: String!, partNumbers: Int!): [String]
+        curUser: [allUser]
+        pagination(pageNumber: Int!, limit: Int!): paginationType
     }
 
     type Mutation {
