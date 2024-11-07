@@ -47,6 +47,11 @@ const typeDefs = `
         nextPageNumber: Int!
     }
 
+    type generateKeyType {
+        publicKey: String!
+        privateKey: String!
+    }
+
     type Query {
         messages: [Message]
         showUserMessage(sender: String!): [Message]
@@ -55,6 +60,9 @@ const typeDefs = `
         generateMultipart(fileName: String!, uploadId: String!, partNumbers: Int!): [String]
         curUser: [allUser]
         pagination(pageNumber: Int!, limit: Int!): paginationType
+        generateKeyPair: generateKeyType!
+        encrypt(text: String!): String!
+        decrypt(encryptedText: String!): String!
     }
 
     type Mutation {

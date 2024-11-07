@@ -4,6 +4,7 @@ import { withFilter } from 'graphql-subscriptions';
 import { getUserFromToken } from '../../utils/jwt.js';
 import { getPresignedUrl, s3, uploadToS3 } from '../../utils/s3.js';
 import { GraphQLUpload } from "graphql-upload-ts";
+import { encrypt } from "../../utils/encrypt.js";
 
 const pubsub = new PubSub();
 
@@ -61,60 +62,64 @@ const messageResolver = {
   },
   Mutation: {
     sendMessage: async (_: any, { to, message, file }: any, context: { token: string }) => {
-      const userData : { id: string, userName: string } = await getUserFromToken(context.token);
-        let fileData = null;
-        let subfileData = null;
-        
-        if(file){
-          const { createReadStream, filename, mimetype } = await file;
-          const fileStream = createReadStream();
-
-          const uploadResult = await uploadToS3(fileStream, filename, mimetype);
-
-          fileData = {
-            filename,
-            mimetype,
-            url: uploadResult.Location,
-          };
-
-          const presignedUrl = await getPresignedUrl(uploadResult.Key);
+      try {
+        const userData : { id: string, userName: string } = await getUserFromToken(context.token);
+          let fileData = null;
+          let subfileData = null;
           
-          subfileData = {
-            filename,
-            mimetype,
-            url: presignedUrl,
+          if(file){
+            const { createReadStream, filename, mimetype } = await file;
+            const fileStream = createReadStream();
+  
+            const uploadResult = await uploadToS3(fileStream, filename, mimetype);
+  
+            fileData = {
+              filename,
+              mimetype,
+              url: uploadResult.Location,
+            };
+  
+            const presignedUrl = await getPresignedUrl(uploadResult.Key);
+            
+            subfileData = {
+              filename,
+              mimetype,
+              url: presignedUrl,
+            };
+          }
+  
+          const encrypted_message = await encrypt(message, to);
+  
+          const { id, userName } = userData;
+          const newMessage = {
+            id,
+            sender: userName,
+            message: encrypted_message,
+            file: subfileData,
+            to,
           };
-        }
 
-        const { id, userName } = userData;
-        const newMessage = {
-          id,
-          sender: userName,
-          message,
-          file: subfileData,
-          to,
-        };
-
-        pubsub.publish('MESSAGE_ADDED', {
-          showMessages: newMessage,
-          showUsersMessages: newMessage,
-          to,
-          id,
-        });
-
-        try {
           await Message.create({
             sender: id,
-            message,
+            message: encrypted_message,
             to,
             senderName: userName,
             file: fileData,
           });
-        } catch (error) {
-          return error.message;
-        }
-    return "Message sent successfully";
-    },
+  
+          pubsub.publish('MESSAGE_ADDED', {
+            showMessages: newMessage,
+            showUsersMessages: newMessage,
+            to,
+            id,
+          });
+      return "Message sent successfully";  
+    } 
+    catch (e) {
+      console.log(e);
+      throw new Error(e?.message ?? "Looks like something went wrong.")
+    }    
+},
       complete: async (_: any, { fileName, uploadId, parts, to }, context: { token: string }) => {
         const userData: { id: string, userName: string } = await getUserFromToken(context.token);
         const { id, userName } = userData;

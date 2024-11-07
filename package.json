@@ -28,11 +28,12 @@
     "koa": "^2.15.3",
     "mongodb": "^6.8.0",
     "mongoose": "^8.6.0",
+    "nodemon": "^3.1.7",
     "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
-    "@types/node": "^22.5.2",
-    "typescript": "^5.5.4"
+    "@types/node": "^22.9.0",
+    "typescript": "^5.6.3"
   }
 }
