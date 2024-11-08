@@ -4,7 +4,7 @@ import { withFilter } from 'graphql-subscriptions';
 import { getUserFromToken } from '../../utils/jwt.js';
 import { getPresignedUrl, s3, uploadToS3 } from '../../utils/s3.js';
 import { GraphQLUpload } from "graphql-upload-ts";
-import { encrypt } from "../../utils/encrypt.js";
+import encrypt from "../../utils/encrypt.js";
 
 const pubsub = new PubSub();
 
@@ -88,7 +88,7 @@ const messageResolver = {
             };
           }
   
-          const encrypted_message = await encrypt(message, to);
+          const encrypted_message = await encrypt(to, message);
   
           const { id, userName } = userData;
           const newMessage = {
