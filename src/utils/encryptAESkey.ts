@@ -27,13 +27,13 @@ export const generateKeyPair = async (passphrase = process.env.PASSPHRASE) => {
         });
         
         const json_fs = JSON.stringify({
-            publicKey: publicKey,
-            privateKey: privateKey,
+            publicKey,
+            privateKey,
             passphrase
         });
 
         await fs.promises.appendFile(`encrypt_key${passphrase}.txt`, json_fs);
-        await PublicKeyDB.create({ email: passphrase, publicKey: publicKey });
+        await PublicKeyDB.create({ email: passphrase, publicKey });
         return {publicKey, privateKey, passphrase}
     }
     catch(e) {
