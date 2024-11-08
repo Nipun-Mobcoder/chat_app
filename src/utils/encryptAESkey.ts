@@ -11,6 +11,7 @@ export const generateKeyPair = async (passphrase = process.env.PASSPHRASE) => {
             const jsonData = await fs.promises.readFile(`encrypt_key${passphrase}.txt`);
             return JSON.parse(jsonData.toString());
         }
+
         const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
             modulusLength: 4096,
             publicKeyEncoding: {
@@ -24,6 +25,7 @@ export const generateKeyPair = async (passphrase = process.env.PASSPHRASE) => {
                 passphrase
             }
         });
+        
         const json_fs = JSON.stringify({
             publicKey: publicKey,
             privateKey: privateKey,

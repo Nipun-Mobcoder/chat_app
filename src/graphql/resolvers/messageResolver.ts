@@ -88,9 +88,10 @@ const messageResolver = {
             };
           }
   
-          const encrypted_message = await encrypt(to, message);
-  
           const { id, userName } = userData;
+  
+          const encrypted_message = await encrypt(to, id, message);
+  
           const newMessage = {
             id,
             sender: userName,

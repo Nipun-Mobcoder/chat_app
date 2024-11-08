@@ -4,7 +4,7 @@ import { getUserFromToken } from '../../utils/jwt.js';
 
 const encryptResolver = {
     Query: {
-        decrypt: async(_: any, {encryptedText}, context: {token: string}) => {
+        decrypt: async(_: any, {encryptedText, sender}, context: {token: string}) => {
             try {
                 const userData : { id: string, userName: string } = await getUserFromToken(context.token);
                 const decodedMessage = Buffer.from(encryptedText, 'base64').toString('utf-8');
@@ -14,10 +14,18 @@ const encryptResolver = {
                 const jsonData = await fs.promises.readFile(`encrypt_key${userData.id}.txt`);
                 if(!JSON.parse(jsonData.toString()).privateKey) 
                     throw new Error("Private Key is absent");
-                const ivString =  crypto.privateDecrypt({
-                                    key: JSON.parse(jsonData.toString()).privateKey,
-                                    passphrase: JSON.parse(jsonData.toString()).passphrase
-                                }, Buffer.from(decodedJson.encrIV, 'base64')).toString('utf8');
+                if(sender) {
+                    var ivString =  crypto.privateDecrypt({
+                        key: JSON.parse(jsonData.toString()).privateKey,
+                        passphrase: JSON.parse(jsonData.toString()).passphrase
+                    }, Buffer.from(decodedJson.senderEncrIV, 'base64')).toString('utf8');
+                }
+                else {
+                    var ivString =  crypto.privateDecrypt({
+                        key: JSON.parse(jsonData.toString()).privateKey,
+                        passphrase: JSON.parse(jsonData.toString()).passphrase
+                    }, Buffer.from(decodedJson.encrIV, 'base64')).toString('utf8');
+                }
 
                 const iv = Buffer.from(ivString, "hex");
                 const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(decodedJson.key.data), iv)

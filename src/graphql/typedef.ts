@@ -55,7 +55,7 @@ const typeDefs = `
         generateMultipart(fileName: String!, uploadId: String!, partNumbers: Int!): [String]
         curUser: [allUser]
         pagination(pageNumber: Int!, limit: Int!): paginationType
-        decrypt(encryptedText: String!): String!
+        decrypt(encryptedText: String!, sender: Boolean!): String!
     }
 
     type Mutation {
