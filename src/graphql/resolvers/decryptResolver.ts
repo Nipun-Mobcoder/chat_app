@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import fs from 'fs';
 import { getUserFromToken } from '../../utils/jwt.js';
 
-const encryptResolver = {
+const decryptResolver = {
     Query: {
         decrypt: async(_: any, {encryptedText, sender}, context: {token: string}) => {
             try {
@@ -44,4 +44,4 @@ const encryptResolver = {
     }
 };
 
-export default encryptResolver;
+export default decryptResolver;

@@ -3,7 +3,7 @@ import authResolver from './authResolver.js';
 import { GraphQLUpload } from 'graphql-upload-ts';
 import multiFileResolver from './multiFileResolver.js';
 import curResolver from './curResolver.js';
-import encryptResolver from './encryptResolver.js';
+import decryptResolver from './decryptResolver.js';
 
 const resolvers = {
   Upload: GraphQLUpload,
@@ -12,7 +12,7 @@ const resolvers = {
     ...authResolver.Query,
     ...multiFileResolver.Query,
     ...curResolver.Query,
-    ...encryptResolver.Query
+    ...decryptResolver.Query
   },
   Mutation: {
     ...messageResolver.Mutation,
