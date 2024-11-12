@@ -24,7 +24,7 @@ const messageResolver = {
           const presignedUrl = await getPresignedUrl(key);
           file = { filename: msg.file.filename, mimetype: msg.file.mimetype, url: presignedUrl };
         }
-        var formattedTime;
+        var formattedTime: string;
         if(msg.createdAt){
           const date = new Date(msg.createdAt)
           var hours = date.getHours();

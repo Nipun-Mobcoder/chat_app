@@ -1,6 +1,8 @@
 import * as crypto from 'crypto';
 import fs from 'fs';
+
 import { getUserFromToken } from '../../utils/jwt.js';
+import User from '../../models/User.js';
 
 const decryptResolver = {
     Query: {
@@ -40,6 +42,40 @@ const decryptResolver = {
                 console.log(e);
                 throw new Error(e?.message ?? "Looks like something went wrong.")
             }
+        },
+        search: async (_parent: any, { searchText }: {searchText: string}, context: {token: string}) => {
+            const userData : { id: string, userName: string } = await getUserFromToken(context.token);
+            
+            const filter: any = {
+                $text: {$search: searchText, $caseSensitive: false, $diacriticSensitive: false},
+            }
+
+            const result = await User
+                .find(filter)
+                .sort({score: {$meta: 'textScore'}})
+                .limit(10)
+
+            return result
+        },
+        searchAuto: async (_parent: any, {searchText}: { searchText: string }, context: {token: string}) => {
+            const userData: { id: string, userName: string } = await getUserFromToken(context.token);
+
+            const data = await User.aggregate([
+                {
+                  "$search": {
+                    "autocomplete": {
+                      "query": searchText,
+                      "path": "search",
+                      "fuzzy": {
+                        "maxEdits": 2,
+                        "prefixLength": 3,
+                      },
+                    },
+                  },
+                }, 
+              ]);
+
+            return data;
         }
     }
 };

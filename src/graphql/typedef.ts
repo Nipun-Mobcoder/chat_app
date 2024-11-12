@@ -56,6 +56,8 @@ const typeDefs = `
         curUser: [allUser]
         pagination(pageNumber: Int!, limit: Int!): paginationType
         decrypt(encryptedText: String!, sender: Boolean!): String!
+        search(searchText: String!): [User!]
+        searchAuto(searchText: String!): String
     }
 
     type Mutation {

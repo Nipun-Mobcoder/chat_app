@@ -8,6 +8,8 @@ const UserSchema = new Schema({
   password: String,
 });
 
+UserSchema.index({ userName: 'text', email: 'text' }, { name: 'name_email_text' });
+
 const User = mongoose.model("User", UserSchema);
 
 export default User;
