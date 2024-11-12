@@ -57,7 +57,7 @@ const typeDefs = `
         pagination(pageNumber: Int!, limit: Int!): paginationType
         decrypt(encryptedText: String!, sender: Boolean!): String!
         search(searchText: String!): [User!]
-        searchAuto(searchText: String!): String
+        searchAuto(searchText: String!): [User!]
     }
 
     type Mutation {
