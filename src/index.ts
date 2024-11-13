@@ -13,11 +13,14 @@ import { graphqlUploadExpress } from 'graphql-upload-ts';
 import typeDefs from './graphql/typedef.js';
 import resolvers from './graphql/resolvers/index.js';
 import connectDB from './config/db.js';
+import { getUserFromToken } from './utils/jwt.js';
+import pubsub from './utils/pubsub.js';
 
 dotenv.config();
 
 const app = express();
 const httpServer = http.createServer(app);
+var activeUsers = [];
 
 app.use(express.json());
 
@@ -46,9 +49,36 @@ const wsServer = new WebSocketServer({
   server: httpServer,
   path: '/graphql',
 });
-useServer({ schema }, wsServer);
+
+useServer({
+  schema,
+  onDisconnect: async (context) => {
+    const { connectionParams } = context;
+    const token = connectionParams?.token as string;
+
+    try {
+      const user = await getUserFromToken(token);
+
+      const isActive = false;
+      const existingUserIndex = activeUsers.findIndex((u) => u.to === user.id);
+
+      if (existingUserIndex > -1) {
+        activeUsers[existingUserIndex].isActive = isActive;
+      } else {
+        activeUsers.push({ to: user.id, isActive });
+      }
+
+      pubsub.publish('isActive', { showStatus: activeUsers });
+    } catch (e) {
+      throw new Error(e?.message ?? "Something went wrong.")
+    }
+  },
+}, wsServer);
+
 
 connectDB();
 httpServer.listen(5000, () => {
   console.log("Server ready at http://localhost:5000/graphql");
 });
+
+export default activeUsers;

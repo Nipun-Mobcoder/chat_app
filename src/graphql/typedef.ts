@@ -47,6 +47,16 @@ const typeDefs = `
         nextPageNumber: Int!
     }
 
+    type showStatusType {
+        to: String!
+        isActive: Boolean!
+    }
+
+    type isTypingType {
+        id: String!
+        isTyping: Boolean!
+    }
+
     type Query {
         messages: [Message]
         showUserMessage(sender: String!): [Message]
@@ -58,6 +68,8 @@ const typeDefs = `
         decrypt(encryptedText: String!, sender: Boolean!): String!
         search(searchText: String!): [User!]
         searchAuto(searchText: String!): [User!]
+        status: String
+        typingStatus(isTyping: Boolean!, to: String!): String
     }
 
     type Mutation {
@@ -69,6 +81,8 @@ const typeDefs = `
     type Subscription {
         showMessages(tokenId: String!): Message
         showUsersMessages(tokenId: String!, userId: String!): Message
+        showStatus: [showStatusType!]
+        isTyping(tokenId: String!, userId: String!): isTypingType
     }
 
 `;

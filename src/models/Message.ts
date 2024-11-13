@@ -11,7 +11,7 @@ const FileSchema = new Schema({
 const MessageSchema = new Schema({
   sender: String,
   message: String,
-  to: String,
+  to: { type: Schema.Types.Mixed },
   senderName: String,
   file: FileSchema,
 }, { timestamps: true });

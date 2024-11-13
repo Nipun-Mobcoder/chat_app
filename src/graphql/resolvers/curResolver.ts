@@ -6,14 +6,14 @@ import { getUserFromToken } from "../../utils/jwt.js";
 const curResolver = {
   Query: {
     curUser: async (_: any, {}, context: { token: string }) => {
-        try {
-          const users = await User.find({});
-          const allUsers = users.map(user => ({ id: String(user._id), user: user.userName }));
-          return allUsers;
-        }
-        catch(e) {
-          throw new Error(e?.message ?? "Looks like something went wrong.")
-        }
+      try {
+        const users = await User.find({});
+        const allUsers = users.map(user => ({ id: String(user._id), user: user.userName }));
+        return allUsers;
+      }
+      catch(e) {
+        throw new Error(e?.message ?? "Looks like something went wrong.")
+      }
     },
     pagination: async (_: any, { pageNumber, limit }: { pageNumber: number, limit: number }, context: { token: string }) => {
       try {

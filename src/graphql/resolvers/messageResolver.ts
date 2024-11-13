@@ -1,12 +1,13 @@
 import Message from "../../models/Message.js";
-import { PubSub } from 'graphql-subscriptions';
 import { withFilter } from 'graphql-subscriptions';
 import { getUserFromToken } from '../../utils/jwt.js';
 import { getPresignedUrl, s3, uploadToS3 } from '../../utils/s3.js';
 import { GraphQLUpload } from "graphql-upload-ts";
 import encrypt from "../../utils/encrypt.js";
+import pubsub from "../../utils/pubsub.js";
+import activeUsers from "../../index.js";
 
-const pubsub = new PubSub();
+// var activeUsers = [];
 
 const messageResolver = {
   Upload: GraphQLUpload,
@@ -59,6 +60,8 @@ const messageResolver = {
         return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00" };
       });
     },
+    
+    
   },
   Mutation: {
     sendMessage: async (_: any, { to, message, file }: any, context: { token: string }) => {
@@ -66,11 +69,10 @@ const messageResolver = {
         const userData : { id: string, userName: string } = await getUserFromToken(context.token);
           let fileData = null;
           let subfileData = null;
-          
+
           if(file){
             const { createReadStream, filename, mimetype } = await file;
             const fileStream = createReadStream();
-  
             const uploadResult = await uploadToS3(fileStream, filename, mimetype);
   
             fileData = {
@@ -89,8 +91,8 @@ const messageResolver = {
           }
   
           const { id, userName } = userData;
-  
-          const encrypted_message = await encrypt(to, id, message);
+          if(message)
+            var encrypted_message = await encrypt(to, id, message);
   
           const newMessage = {
             id,
@@ -197,7 +199,7 @@ const messageResolver = {
            || ( payload.id === userData.id && payload.to === variables.userId ) ;
         }
       ),
-    },
+    }
   },
 };
 

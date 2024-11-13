@@ -4,6 +4,7 @@ import { GraphQLUpload } from 'graphql-upload-ts';
 import multiFileResolver from './multiFileResolver.js';
 import curResolver from './curResolver.js';
 import decryptResolver from './decryptResolver.js';
+import statusResolver from './statusResolver.js';
 
 const resolvers = {
   Upload: GraphQLUpload,
@@ -12,7 +13,8 @@ const resolvers = {
     ...authResolver.Query,
     ...multiFileResolver.Query,
     ...curResolver.Query,
-    ...decryptResolver.Query
+    ...decryptResolver.Query,
+    ...statusResolver.Query
   },
   Mutation: {
     ...messageResolver.Mutation,
@@ -20,6 +22,7 @@ const resolvers = {
   },
   Subscription: {
     ...messageResolver.Subscription,
+    ...statusResolver.Subscription
   },
 };
 
