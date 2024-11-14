@@ -2,6 +2,11 @@ const typeDefs = `
 
     scalar Upload
 
+    enum UserRole {
+        User
+        Admin
+    }
+
     type Message {
         id: ID!
         sender: String
@@ -57,6 +62,17 @@ const typeDefs = `
         isTyping: Boolean!
     }
 
+    type Group {
+        user: ID!
+        role: UserRole!
+    }
+
+    type groupType {
+        groupName: String!
+        creator: ID!
+        users: [Group!]!
+    }
+
     type Query {
         messages: [Message]
         showUserMessage(sender: String!): [Message]
@@ -76,6 +92,9 @@ const typeDefs = `
         register(userName: String!, email: String!, password: String!): User
         sendMessage(to: String!, message: String, file: Upload): String
         complete(fileName: String!, uploadId: String!, parts: [PartType!]!, to: String!): String
+        createGroup(groupName: String!, ids: [String!]! ): groupType
+        deleteGroup(groupId: String!): groupType
+        addUser(groupId: ID!, userId: ID!): groupType
     }
 
     type Subscription {

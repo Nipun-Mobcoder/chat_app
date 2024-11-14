@@ -5,6 +5,7 @@ import multiFileResolver from './multiFileResolver.js';
 import curResolver from './curResolver.js';
 import decryptResolver from './decryptResolver.js';
 import statusResolver from './statusResolver.js';
+import groupMessageResolver from './groupMessageResolver.js';
 
 const resolvers = {
   Upload: GraphQLUpload,
@@ -18,7 +19,8 @@ const resolvers = {
   },
   Mutation: {
     ...messageResolver.Mutation,
-    ...authResolver.Mutation
+    ...authResolver.Mutation,
+    ...groupMessageResolver.Mutation
   },
   Subscription: {
     ...messageResolver.Subscription,
