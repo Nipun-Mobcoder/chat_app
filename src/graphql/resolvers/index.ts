@@ -15,7 +15,8 @@ const resolvers = {
     ...multiFileResolver.Query,
     ...curResolver.Query,
     ...decryptResolver.Query,
-    ...statusResolver.Query
+    ...statusResolver.Query,
+    ...groupMessageResolver.Query
   },
   Mutation: {
     ...messageResolver.Mutation,

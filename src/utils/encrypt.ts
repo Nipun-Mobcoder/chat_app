@@ -1,7 +1,6 @@
 import * as crypto from 'crypto'
 import { encryptAES } from './encryptAESkey.js';
 
-
 const encrypt = async (passphrase: string,senderPassPhrase: string, text: string) => {
   const salt = crypto.randomBytes(32).toString('hex');
   const key = crypto.scryptSync(passphrase, salt, 32)

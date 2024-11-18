@@ -11,9 +11,10 @@ const FileSchema = new Schema({
 const MessageSchema = new Schema({
   sender: String,
   message: String,
-  to: { type: Schema.Types.Mixed },
+  to: String,
   senderName: String,
   file: FileSchema,
+  isGroup: { type: Boolean, default: false }
 }, { timestamps: true });
 
 const Message = mongoose.model("Message", MessageSchema);

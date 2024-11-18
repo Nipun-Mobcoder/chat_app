@@ -86,15 +86,17 @@ const typeDefs = `
         searchAuto(searchText: String!): [User!]
         status: String
         typingStatus(isTyping: Boolean!, to: String!): String
+        showGroupMessages(groupId: String!): [Message]
     }
 
     type Mutation {
         register(userName: String!, email: String!, password: String!): User
-        sendMessage(to: String!, message: String, file: Upload): String
+        sendMessage(to: ID!, message: String, file: Upload): String
         complete(fileName: String!, uploadId: String!, parts: [PartType!]!, to: String!): String
         createGroup(groupName: String!, ids: [String!]! ): groupType
         deleteGroup(groupId: String!): groupType
         addUser(groupId: ID!, userId: ID!): groupType
+        sendGroupMessage(groupId: ID!, message: String, file: Upload): String
     }
 
     type Subscription {

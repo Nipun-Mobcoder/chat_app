@@ -5,9 +5,11 @@ import { getPresignedUrl, s3, uploadToS3 } from '../../utils/s3.js';
 import { GraphQLUpload } from "graphql-upload-ts";
 import encrypt from "../../utils/encrypt.js";
 import pubsub from "../../utils/pubsub.js";
-import activeUsers from "../../index.js";
+import Group from "../../models/Group.js";
+import User from "../../models/User.js";
+import sendMessageGroup from "../../utils/sendMessageGroup.js";
+import showGroupMessages from "../../utils/showMessageGroup.js";
 
-// var activeUsers = [];
 
 const messageResolver = {
   Upload: GraphQLUpload,
@@ -39,6 +41,10 @@ const messageResolver = {
     showUserMessage: async (_ : any, {sender}, context: { token : string }) => {
       const userData : { id: string } = await getUserFromToken(context.token);
       const { id } = userData;
+      const findUser = await User.findOne({ _id: sender });
+      if(!findUser) {
+        return showGroupMessages(sender, context);
+      }
       const dbMessages = await Message.find({
         $or: [{$and:[ {to: id}, {sender: sender}] }, { $and:[ {sender: id}, {to: sender}] }]
       });
@@ -49,7 +55,7 @@ const messageResolver = {
           const presignedUrl = await getPresignedUrl(key);
           file = { filename: msg.file.filename, mimetype: msg.file.mimetype, url: presignedUrl };
         }
-        var formattedTime;
+        var formattedTime: string;
         if(msg.createdAt){
           const date = new Date(msg.createdAt)
           var hours = date.getHours();
@@ -67,6 +73,10 @@ const messageResolver = {
     sendMessage: async (_: any, { to, message, file }: any, context: { token: string }) => {
       try {
         const userData : { id: string, userName: string } = await getUserFromToken(context.token);
+        const findUser = await User.findOne({ _id: to });
+        if(!findUser) {
+          return sendMessageGroup(to, message, file, context);
+        }
           let fileData = null;
           let subfileData = null;
 
@@ -159,7 +169,8 @@ const messageResolver = {
             showMessages: newMessage,
             showUsersMessages: newMessage,
             to,
-            id
+            id,
+            isGroup: false
           });
   
           await Message.create({
@@ -192,14 +203,31 @@ const messageResolver = {
     },
     showUsersMessages: {
       subscribe: withFilter(
-        () => pubsub.asyncIterator(['MESSAGE_ADDED','FILE_ADDED']),
+        () => pubsub.asyncIterator(['MESSAGE_ADDED', 'FILE_ADDED']),
         async (payload, variables) => {
-          const userData : { id: string, userName: string } = await getUserFromToken(variables.tokenId);
-          return ( payload.to === userData.id && payload.id === variables.userId )
-           || ( payload.id === userData.id && payload.to === variables.userId ) ;
+          const userData: { id: string, userName: string } = await getUserFromToken(variables.tokenId);
+    
+          if (!payload.isGroup) {
+            return (
+              (payload.to === userData.id && payload.id === variables.userId) ||
+              (payload.id === userData.id && payload.to === variables.userId)
+            );
+          } else {
+            try {
+              const id = payload.groupId;
+              const groupDetails = await Group.findOne({ _id: id });
+              console.log(groupDetails)
+              if (!groupDetails) throw new Error("Group doesn't exist.");
+      
+              return groupDetails.users.some(user => user.user === userData.id);
+            } catch (e) {
+              throw new Error(e?.message ?? "Looks like something went wrong.")
+            }
+          }
         }
       ),
     }
+    
   },
 };
 

@@ -77,7 +77,7 @@ useServer({
 
 
 connectDB();
-httpServer.listen(4000, () => {
+httpServer.listen(5000, () => {
   console.log("Server ready at http://localhost:5000/graphql");
 });
 
