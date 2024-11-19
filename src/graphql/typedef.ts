@@ -87,7 +87,6 @@ const typeDefs = `
         searchAuto(searchText: String!): [User!]
         status: String
         typingStatus(isTyping: Boolean!, to: String!): String
-        showGroupMessages(groupId: String!): [Message]
     }
 
     type Mutation {
@@ -97,7 +96,6 @@ const typeDefs = `
         createGroup(groupName: String!, ids: [String!]! ): groupType
         deleteGroup(groupId: String!): groupType
         addUser(groupId: ID!, userId: ID!): groupType
-        sendGroupMessage(groupId: ID!, message: String, file: Upload): String
     }
 
     type Subscription {

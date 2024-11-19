@@ -2,14 +2,24 @@ import User from "../../models/User.js";
 import Message from '../../models/Message.js';
 import { getPresignedUrl } from '../../utils/s3.js';
 import { getUserFromToken } from "../../utils/jwt.js";
+import Group from "../../models/Group.js";
 
 const curResolver = {
   Query: {
     curUser: async (_: any, {}, context: { token: string }) => {
       try {
+        const userData: { id: string, userName: string, email: string } = await getUserFromToken(context.token);
+        const { id } = userData;
+
         const users = await User.find({});
         const allUsers = users.map(user => ({ id: String(user._id), user: user.userName }));
-        return allUsers;
+
+        const groupDetails = await Group.find({});
+        const userGroups = groupDetails
+          .filter(group => group.users.some(user => user.user === id))
+          .map(group => ({ id: group._id.toString(), user: group.groupName }));
+
+        return [...allUsers, ...userGroups];
       }
       catch(e) {
         throw new Error(e?.message ?? "Looks like something went wrong.")
@@ -37,7 +47,7 @@ const curResolver = {
           }
           var formattedTime: String;
           if(msg.createdAt){
-            const date = new Date(msg.createdAt)
+            const date = new Date(msg.createdAt);
             var hours = date.getHours();
             var minutes = date.getMinutes();
             formattedTime = `${date.getDate()}/${(date.getMonth() + 1).toString().padStart(2, "0")}/${date.getFullYear()} (` + hours + ':' + minutes.toString().padStart(2, "0") + ')';
