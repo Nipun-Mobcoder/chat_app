@@ -1,4 +1,3 @@
-import { validateMessage } from "graphql-ws";
 import Group from "../../models/Group.js";
 import Message from "../../models/Message.js";
 import User from "../../models/User.js";
@@ -69,7 +68,7 @@ const groupMessageResolver = {
                 const { id } = userData;
                 const groupDetails = await Group.findOne({ _id: groupId });
                 if(!groupDetails) throw new Error("Group doesn't exist.");
-                const { users, groupName } = groupDetails;
+                const { users } = groupDetails;
                 var isPresent = false;
                 users.forEach(user => {
                     if(user.user === id) {
@@ -133,7 +132,7 @@ const groupMessageResolver = {
                     fileData = {
                         filename,
                         mimetype,
-                        url: uploadResult.Location,
+                        url: uploadResult.Location
                     };
             
                     const presignedUrl = await getPresignedUrl(uploadResult.Key);
@@ -141,7 +140,7 @@ const groupMessageResolver = {
                     subfileData = {
                         filename,
                         mimetype,
-                        url: presignedUrl,
+                        url: presignedUrl
                     };
                 }
 
@@ -177,7 +176,6 @@ const groupMessageResolver = {
                 return "Message sent successfully";  
             } 
             catch (e) {
-              console.log(e);
               throw new Error(e?.message ?? "Looks like something went wrong.")
             }    
         }

@@ -39,7 +39,6 @@ const decryptResolver = {
                 decrypted += decipher.final('utf8');
                 return decrypted
             } catch (e) {
-                console.log(e);
                 throw new Error(e?.message ?? "Looks like something went wrong.")
             }
         },

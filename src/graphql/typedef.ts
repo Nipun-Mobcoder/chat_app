@@ -14,6 +14,7 @@ const typeDefs = `
         file: File
         createdAt: String
         to: String
+        date: String
     }
 
     type User {

@@ -16,7 +16,6 @@ const multiFileResolver = {
         const multipart = await s3.createMultipartUpload(params).promise();
         return multipart.UploadId;
       } catch (error) {
-        console.log(error);
         throw new Error(error?.message ?? "Looks like something went wrong.");
       }
     },

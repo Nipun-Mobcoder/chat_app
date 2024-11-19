@@ -9,68 +9,79 @@ import Group from "../../models/Group.js";
 import User from "../../models/User.js";
 import sendMessageGroup from "../../utils/sendMessageGroup.js";
 import showGroupMessages from "../../utils/showMessageGroup.js";
+import sendFileGroup from "../../utils/sendFileGroup.js";
+import formatDate from "../../utils/formatDate.js";
 
 
 const messageResolver = {
   Upload: GraphQLUpload,
   Query: {
     messages: async (_ : any, __: {}, context: { token : string }) => {
-      const userData : { id: string } = await getUserFromToken(context.token);
-      const { id } = userData;
-      const dbMessages = await Message.find({
-        $or: [{ to: id }, { sender: id }]
-      });
-      return dbMessages.map(async (msg) => {
-        let file = null;
-        if (msg.file) {
-          const key = msg.file.url.split('/').pop();
-          const presignedUrl = await getPresignedUrl(key);
-          file = { filename: msg.file.filename, mimetype: msg.file.mimetype, url: presignedUrl };
-        }
-        var formattedTime: string;
-        if(msg.createdAt){
-          const date = new Date(msg.createdAt)
-          var hours = date.getHours();
-          var minutes = date.getMinutes();
-
-          formattedTime = hours + ':' + minutes.toString().padStart(2, "0");
-        }
-        return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00" };
-      });
+      try {
+        const userData : { id: string } = await getUserFromToken(context.token);
+        const { id } = userData;
+        const dbMessages = await Message.find({
+          $or: [{ to: id }, { sender: id }]
+        });
+        return dbMessages.map(async (msg) => {
+          let file = null;
+          if (msg.file) {
+            const key = msg.file.url.split('/').pop();
+            const presignedUrl = await getPresignedUrl(key);
+            file = { filename: msg.file.filename, mimetype: msg.file.mimetype, url: presignedUrl };
+          }
+          var formattedTime: string;
+          if(msg.createdAt){
+            const date = new Date(msg.createdAt)
+            var hours = date.getHours();
+            var minutes = date.getMinutes();
+  
+            formattedTime = hours + ':' + minutes.toString().padStart(2, "0");
+          }
+          return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00", to: msg?.sender };
+        });
+      } catch (e) {
+        throw new Error(e?.message ?? "Looks like something went wrong.")
+      }
     },
     showUserMessage: async (_ : any, {sender}, context: { token : string }) => {
-      const userData : { id: string } = await getUserFromToken(context.token);
-      const { id } = userData;
-      const findUser = await User.findOne({ _id: sender });
-      if(!findUser) {
-        return showGroupMessages(sender, context);
+      try {
+        const userData : { id: string } = await getUserFromToken(context.token);
+        const { id } = userData;
+        const findUser = await User.findOne({ _id: sender });
+        if(!findUser) {
+          return showGroupMessages(sender, context);
+        }
+        const dbMessages = await Message.find({
+          $or: [{$and:[ {to: id}, {sender: sender}] }, { $and:[ {sender: id}, {to: sender}] }]
+        });
+        return dbMessages.map(async (msg) => {
+          let file = null;
+          if (msg.file) {
+            const key = msg.file.url.split('/').pop();
+            const presignedUrl = await getPresignedUrl(key);
+            file = { filename: msg.file.filename, mimetype: msg.file.mimetype, url: presignedUrl };
+          }
+          var formattedTime: string;
+          if(msg.createdAt){
+            const date = new Date(msg.createdAt)
+            var hours = date.getHours();
+            var minutes = date.getMinutes();
+  
+            formattedTime = hours + ':' + minutes.toString().padStart(2, "0");
+            var fullDate = formatDate(date);
+          }
+          return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00", to: msg?.sender, date: fullDate ?? "Last Year."  };
+        });
+      } catch (e) {
+        throw new Error(e?.message ?? "Looks like something went wrong.")
       }
-      const dbMessages = await Message.find({
-        $or: [{$and:[ {to: id}, {sender: sender}] }, { $and:[ {sender: id}, {to: sender}] }]
-      });
-      return dbMessages.map(async (msg) => {
-        let file = null;
-        if (msg.file) {
-          const key = msg.file.url.split('/').pop();
-          const presignedUrl = await getPresignedUrl(key);
-          file = { filename: msg.file.filename, mimetype: msg.file.mimetype, url: presignedUrl };
-        }
-        var formattedTime: string;
-        if(msg.createdAt){
-          const date = new Date(msg.createdAt)
-          var hours = date.getHours();
-          var minutes = date.getMinutes();
-
-          formattedTime = hours + ':' + minutes.toString().padStart(2, "0");
-        }
-        return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00" };
-      });
     },
     
     
   },
   Mutation: {
-    sendMessage: async (_: any, { to, message, file }: any, context: { token: string }) => {
+    sendMessage: async (_: any, { to, message, file }: { to: string, message: string, file: any }, context: { token: string }) => {
       try {
         const userData : { id: string, userName: string } = await getUserFromToken(context.token);
         const findUser = await User.findOne({ _id: to });
@@ -126,23 +137,27 @@ const messageResolver = {
             to,
             id,
           });
-      return "Message sent successfully";  
-    } 
-    catch (e) {
-      console.log(e);
-      throw new Error(e?.message ?? "Looks like something went wrong.")
-    }    
-},
+        return "Message sent successfully";  
+        } 
+        catch (e) {
+          throw new Error(e?.message ?? "Looks like something went wrong.")
+        }    
+      },
       complete: async (_: any, { fileName, uploadId, parts, to }, context: { token: string }) => {
         const userData: { id: string, userName: string } = await getUserFromToken(context.token);
         const { id, userName } = userData;
   
+        const findUser = await User.findOne({ _id: to });
+        if(!findUser) {
+          return sendFileGroup(context, fileName, uploadId, parts, to);
+        }
+
         const params = {
           Bucket: process.env.S3_BUCKET_NAME,
           Key: fileName,
           UploadId: uploadId,
           MultipartUpload: {
-            Parts: parts.map((part, index) => ({
+            Parts: parts.map((part: { etag: any; }, index: number) => ({
               ETag: part.etag,
               PartNumber: index + 1,
             })),
@@ -186,8 +201,7 @@ const messageResolver = {
   
           return "Message sent successfully";
         } catch (error) {
-          console.error("Error completing multipart upload:", error);
-          throw new Error("Failed to complete multipart upload.");
+          throw new Error(error?.message ?? "Failed to complete multipart upload.");
         }
     },
   },
@@ -216,7 +230,6 @@ const messageResolver = {
             try {
               const id = payload.groupId;
               const groupDetails = await Group.findOne({ _id: id });
-              console.log(groupDetails)
               if (!groupDetails) throw new Error("Group doesn't exist.");
       
               return groupDetails.users.some(user => user.user === userData.id);

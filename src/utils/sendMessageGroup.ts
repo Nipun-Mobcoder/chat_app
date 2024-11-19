@@ -33,15 +33,13 @@ const sendMessageGroup = async (groupId: string, message: string, file: any, con
         }
 
         const { id, userName } = userData;
-    //   if(message)
-    //     var encrypted_message = await encrypt(groupId, id, message);
 
         const newMessage = {
             id,
             sender: userName,
             message: message,
             file: subfileData,
-            to: groupId,
+            to: groupId
         };
 
         await Message.create({
@@ -64,7 +62,6 @@ const sendMessageGroup = async (groupId: string, message: string, file: any, con
         return "Message sent successfully";  
     } 
     catch (e) {
-      console.log(e);
       throw new Error(e?.message ?? "Looks like something went wrong.")
     }    
 }

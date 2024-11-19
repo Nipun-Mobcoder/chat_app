@@ -1,5 +1,6 @@
 import Group from "../models/Group.js";
 import Message from "../models/Message.js";
+import formatDate from "./formatDate.js";
 import { getUserFromToken } from "./jwt.js";
 import { getPresignedUrl } from "./s3.js";
 
@@ -29,8 +30,9 @@ const showGroupMessages = async (groupId: string, context: {token: string}) => {
                 var minutes = date.getMinutes();
     
                 formattedTime = hours + ':' + minutes.toString().padStart(2, "0");
+                var fullDate = formatDate(date);
             }
-            return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00", to: msg.sender };
+            return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00", to: msg.sender, date: fullDate };
         });
     } catch (e) {
         throw new Error(e?.message ?? "Looks like something went wrong.");

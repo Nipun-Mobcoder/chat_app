@@ -56,7 +56,6 @@ const curResolver = {
         return { messages: allMessages, totalPage: totalPage - 1, nextPageNumber: (pageNumber + 1) > (totalPage - 1) ? 0 : pageNumber + 1 }
       }
       catch(e) {
-        console.log(e);
         throw new Error(e?.message ?? "Looks like something went wrong.")
       }
     }

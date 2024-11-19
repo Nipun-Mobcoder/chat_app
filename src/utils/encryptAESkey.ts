@@ -37,7 +37,6 @@ export const generateKeyPair = async (passphrase = process.env.PASSPHRASE) => {
         return {publicKey, privateKey, passphrase}
     }
     catch(e) {
-        console.log(e?.message ?? "Looks like something went wrong");
         throw new Error(e?.message ?? "Looks like something went wrong");
     }
 } 
@@ -47,7 +46,6 @@ export const encryptAES = async (text: string, email: string) => {
     const data = await PublicKeyDB.findOne({ email });
     return crypto.publicEncrypt(data.publicKey, Buffer.from(text, 'utf8')).toString('base64');
    } catch (e) {
-    console.log(e?.message ?? "Looks like something went wrong.");
     throw new Error(e?.message ?? "Looks like something went wrong.");
    }
 }
