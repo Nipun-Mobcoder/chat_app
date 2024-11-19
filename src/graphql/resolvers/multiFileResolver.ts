@@ -1,5 +1,6 @@
-import { s3 } from '../../utils/s3.js';
 import { GraphQLUpload } from "graphql-upload-ts";
+
+import { s3 } from '../../utils/s3.js';
 
 const multiFileResolver = {
   Upload: GraphQLUpload,

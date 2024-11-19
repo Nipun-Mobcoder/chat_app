@@ -11,7 +11,7 @@ const groupMessageResolver = {
             try {
                 const userData: { id: string } = await getUserFromToken(context.token);
                 const { id } = userData;
-                
+
                 const groupDetails = await Group.findOne({ _id: groupId });
                 if(!groupDetails) throw new Error("Group doesn't exist.");
                 const isUserInGroup = groupDetails.users.some(user => user.user === id);
@@ -31,7 +31,7 @@ const groupMessageResolver = {
                         const date = new Date(msg.createdAt)
                         var hours = date.getHours();
                         var minutes = date.getMinutes();
-            
+
                         formattedTime = hours + ':' + minutes.toString().padStart(2, "0");
                     }
                     return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00", to: msg.sender };
@@ -145,8 +145,6 @@ const groupMessageResolver = {
                 }
 
                 const { id, userName } = userData;
-            //   if(message)
-            //     var encrypted_message = await encrypt(groupId, id, message);
 
                 const newMessage = {
                     id,

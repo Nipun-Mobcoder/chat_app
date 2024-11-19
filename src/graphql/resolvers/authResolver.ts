@@ -1,9 +1,10 @@
-import User from "../../models/User.js";
 import jwt from "jsonwebtoken";
+
+import User from "../../models/User.js";
 
 const authResolver = {
   Query: {
-    login: async (parent, { email, password }) => {
+    login: async (_parent: any, { email, password }: { email: string, password: string }) => {
       const userDoc = await User.findOne({ email });
       if (userDoc && password === userDoc.password) {
         const token = jwt.sign({ email: userDoc.email, id: userDoc._id, userName: userDoc.userName }, process.env.JWT_Secret);
@@ -14,7 +15,7 @@ const authResolver = {
     },
   },
   Mutation: {
-    register: async (parent, { userName, email, password }) => {
+    register: async (_parent: any, { userName, email, password }: { userName: string, email: string, password: string }) => {
       const userDoc = await User.create({ userName, email, password });
       return userDoc;
     }

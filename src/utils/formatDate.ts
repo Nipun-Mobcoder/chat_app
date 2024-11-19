@@ -16,14 +16,14 @@ function formatDate(inputDate: Date): string {
     const startOfCurrentWeek = startOfWeek(now);
     const endOfCurrentWeek = new Date(startOfCurrentWeek);
     endOfCurrentWeek.setDate(startOfCurrentWeek.getDate() + 6);
-    
+
     if (inputDate >= startOfCurrentWeek && inputDate <= endOfCurrentWeek) {
       return inputDate.toLocaleDateString('en-US', { weekday: 'long' });
     } else if (inputYear === currentYear) {
-      return inputDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+      return inputDate.toLocaleDateString('en-US', { day: 'numeric', month: 'long' });
     }
     
-    return inputDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    return inputDate.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 export default formatDate;
