@@ -1,7 +1,8 @@
+import { withFilter } from "graphql-subscriptions";
+
 import activeUsers from "../../index.js";
 import { getUserFromToken } from "../../utils/jwt.js";
 import pubsub from "../../utils/pubsub.js";
-import { withFilter } from "graphql-subscriptions";
 
 const statusResolver = {
     Query: {

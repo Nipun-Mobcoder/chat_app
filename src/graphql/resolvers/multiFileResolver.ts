@@ -5,7 +5,7 @@ import { s3 } from '../../utils/s3.js';
 const multiFileResolver = {
   Upload: GraphQLUpload,
   Query: {
-    startMultipart: async (_: any, { fileName, contentType }, context: { token: string }) => {
+    startMultipart: async (_: any, { fileName, contentType }: { fileName: string, contentType: string }, context: { token: string }) => {
       try {
         const params = {
           Bucket: process.env.S3_BUCKET_NAME,
@@ -21,7 +21,7 @@ const multiFileResolver = {
       }
     },
 
-    generateMultipart: async (_: any, { fileName, uploadId, partNumbers }, context: { token: string }) => {
+    generateMultipart: async (_: any, { fileName, uploadId, partNumbers }: { fileName: string, uploadId: string, partNumbers: number }, context: { token: string }) => {
       const totalParts = Array.from({ length: partNumbers }, (_, i) => i + 1);
 
       const presignedUrls = await Promise.all(

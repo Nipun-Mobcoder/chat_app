@@ -6,7 +6,7 @@ import User from '../../models/User.js';
 
 const decryptResolver = {
     Query: {
-        decrypt: async(_: any, {encryptedText, sender}, context: {token: string}) => {
+        decrypt: async(_: any, {encryptedText, sender}: {encryptedText: string, sender: string}, context: {token: string}) => {
             try {
                 const userData : { id: string, userName: string } = await getUserFromToken(context.token);
                 const decodedMessage = Buffer.from(encryptedText, 'base64').toString('utf-8');

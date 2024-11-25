@@ -45,7 +45,7 @@ const messageResolver = {
         throw new Error(e?.message ?? "Looks like something went wrong.")
       }
     },
-    showUserMessage: async (_ : any, {sender}, context: { token : string }) => {
+    showUserMessage: async (_ : any, {sender}: {sender: string}, context: { token : string }) => {
       try {
         const userData : { id: string } = await getUserFromToken(context.token);
         const { id } = userData;
@@ -144,7 +144,7 @@ const messageResolver = {
           throw new Error(e?.message ?? "Looks like something went wrong.")
         }    
       },
-      complete: async (_: any, { fileName, uploadId, parts, to }, context: { token: string }) => {
+      complete: async (_: any, { fileName, uploadId, parts, to }: { fileName: string, uploadId: string, parts: any, to: string }, context: { token: string }) => {
         const userData: { id: string, userName: string } = await getUserFromToken(context.token);
         const { id, userName } = userData;
   
