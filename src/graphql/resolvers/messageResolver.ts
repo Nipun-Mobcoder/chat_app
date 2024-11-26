@@ -1,5 +1,6 @@
 import { withFilter } from 'graphql-subscriptions';
 import { GraphQLUpload } from "graphql-upload-ts";
+import { ReadStream } from 'fs';
 
 import Message from "../../models/Message.js";
 import { getUserFromToken } from '../../utils/jwt.js';
@@ -12,7 +13,14 @@ import sendMessageGroup from "../../utils/sendMessageGroup.js";
 import showGroupMessages from "../../utils/showMessageGroup.js";
 import sendFileGroup from "../../utils/sendFileGroup.js";
 import formatDate from "../../utils/formatDate.js";
+import messageAI from '../../utils/messageAI.js';
 
+type FileUpload = {
+  filename: string;
+  mimetype: string;
+  encoding: string;
+  createReadStream: () => ReadStream; 
+};
 
 const messageResolver = {
   Upload: GraphQLUpload,
@@ -82,10 +90,11 @@ const messageResolver = {
     
   },
   Mutation: {
-    sendMessage: async (_: any, { to, message, file }: { to: string, message: string, file: any }, context: { token: string }) => {
+    sendMessage: async (_: any, { to, message, file }: { to: string, message: string, file: FileUpload }, context: { token: string }) => {
       try {
         const userData : { id: string, userName: string } = await getUserFromToken(context.token);
         const findUser = await User.findOne({ _id: to });
+        if(to === process.env.CHAT_BOT_ID) return messageAI(context, message);
         if(!findUser) {
           return sendMessageGroup(to, message, file, context);
         }
@@ -93,7 +102,7 @@ const messageResolver = {
           let subfileData = null;
 
           if(file){
-            const { createReadStream, filename, mimetype } = await file;
+            const { createReadStream, filename, mimetype } = file;
             const fileStream = createReadStream();
             const uploadResult = await uploadToS3(fileStream, filename, mimetype);
   

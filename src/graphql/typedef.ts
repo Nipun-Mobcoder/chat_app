@@ -96,7 +96,6 @@ const typeDefs = `
         createGroup(groupName: String!, ids: [String!]! ): groupType
         deleteGroup(groupId: String!): groupType
         addUser(groupId: ID!, userId: ID!): groupType
-        messageAI(prompt: String!): String
     }
 
     type Subscription {

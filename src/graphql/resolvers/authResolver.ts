@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 
 import User from "../../models/User.js";
+import { generateKeyPair } from "../../utils/encryptAESkey.js";
 
 const authResolver = {
   Query: {
@@ -17,6 +18,7 @@ const authResolver = {
   Mutation: {
     register: async (_parent: any, { userName, email, password }: { userName: string, email: string, password: string }) => {
       const userDoc = await User.create({ userName, email, password });
+      await generateKeyPair(email);
       return userDoc;
     }
   },

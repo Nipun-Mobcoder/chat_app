@@ -1,10 +1,7 @@
 import * as crypto from 'crypto';
 import fs from 'fs';
-import dotenv from 'dotenv';
 
 import PublicKeyDB from '../models/PublicKey.js';
-
-dotenv.config();
 
 export const generateKeyPair = async (passphrase = process.env.PASSPHRASE) => {
     try {

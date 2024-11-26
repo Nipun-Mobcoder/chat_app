@@ -56,21 +56,23 @@ useServer({
     const { connectionParams } = context;
     const token = connectionParams?.token as string;
 
-    try {
-      const user = await getUserFromToken(token);
-
-      const isActive = false;
-      const existingUserIndex = activeUsers.findIndex((u) => u.to === user.id);
-
-      if (existingUserIndex > -1) {
-        activeUsers[existingUserIndex].isActive = isActive;
-      } else {
-        activeUsers.push({ to: user.id, isActive });
+    if(token) {
+      try {
+        const user = await getUserFromToken(token);
+  
+        const isActive = false;
+        const existingUserIndex = activeUsers.findIndex((u) => u.to === user.id);
+  
+        if (existingUserIndex > -1) {
+          activeUsers[existingUserIndex].isActive = isActive;
+        } else {
+          activeUsers.push({ to: user.id, isActive });
+        }
+  
+        pubsub.publish('isActive', { showStatus: activeUsers });
+      } catch (e) {
+        throw new Error(e?.message ?? "Something went wrong.")
       }
-
-      pubsub.publish('isActive', { showStatus: activeUsers });
-    } catch (e) {
-      throw new Error(e?.message ?? "Something went wrong.")
     }
   },
 }, wsServer);
