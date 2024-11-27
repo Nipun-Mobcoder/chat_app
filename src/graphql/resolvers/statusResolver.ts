@@ -16,7 +16,7 @@ const statusResolver = {
             activeUsers[userIndex].isActive = true;
           else 
             activeUsers.push({ to: targetId, isActive: true });
-    
+
           pubsub.publish('isActive', { showStatus: activeUsers });
           return `${userData.userName} is currently active.`
         },

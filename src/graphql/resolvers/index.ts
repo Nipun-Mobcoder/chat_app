@@ -6,6 +6,7 @@ import curResolver from './curResolver.js';
 import decryptResolver from './decryptResolver.js';
 import statusResolver from './statusResolver.js';
 import groupMessageResolver from './groupMessageResolver.js';
+import paymentResolver from './paymentResolver.js';
 
 const resolvers = {
   Upload: GraphQLUpload,
@@ -20,7 +21,8 @@ const resolvers = {
   Mutation: {
     ...messageResolver.Mutation,
     ...authResolver.Mutation,
-    ...groupMessageResolver.Mutation
+    ...groupMessageResolver.Mutation,
+    ...paymentResolver.Mutation
   },
   Subscription: {
     ...messageResolver.Subscription,

@@ -74,6 +74,13 @@ const typeDefs = `
         users: [Group!]!
     }
 
+    type Order {
+        amount: Int!
+        id: ID!
+        currency: String!
+        status: String!
+    }
+
     type Query {
         messages: [Message]
         showUserMessage(sender: String!): [Message]
@@ -96,6 +103,8 @@ const typeDefs = `
         createGroup(groupName: String!, ids: [String!]! ): groupType
         deleteGroup(groupId: String!): groupType
         addUser(groupId: ID!, userId: ID!): groupType
+        createOrder(amount: String!, currency: String!, to: String!): Order!
+        verifyPayment(razorpayOrderId: String!, razorpayPaymentId: String!, razorpaySignature: String!, to: String!, amount: String!, currency: String!): String! 
     }
 
     type Subscription {
