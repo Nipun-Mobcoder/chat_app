@@ -31,7 +31,7 @@ const multiFileResolver = {
             Key: fileName,
             PartNumber: partNumber,
             UploadId: uploadId,
-            Expires: 60 * 60,
+            Expires: 60 * 60
           };
 
           return s3.getSignedUrl("uploadPart", params);

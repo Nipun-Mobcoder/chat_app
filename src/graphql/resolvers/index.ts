@@ -7,9 +7,11 @@ import decryptResolver from './decryptResolver.js';
 import statusResolver from './statusResolver.js';
 import groupMessageResolver from './groupMessageResolver.js';
 import paymentResolver from './paymentResolver.js';
+import GraphQLJSON from 'graphql-type-json';
 
 const resolvers = {
   Upload: GraphQLUpload,
+  JSON: GraphQLJSON,
   Query: {
     ...messageResolver.Query,
     ...authResolver.Query,

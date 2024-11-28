@@ -1,6 +1,8 @@
 const typeDefs = `
 
     scalar Upload
+    
+    scalar JSON
 
     enum UserRole {
         User
@@ -97,7 +99,7 @@ const typeDefs = `
     }
 
     type Mutation {
-        register(userName: String!, email: String!, password: String!): User
+        register(userName: String!, email: String!, password: String!, isAdmin: Boolean, address: JSON, phoneNumber: Int): User
         sendMessage(to: ID!, message: String, file: Upload): String
         complete(fileName: String!, uploadId: String!, parts: [PartType!]!, to: String!): String
         createGroup(groupName: String!, ids: [String!]! ): groupType

@@ -21,10 +21,10 @@ const groupMessageResolver = {
                 await Group.create({ users, creator: id, groupName });
                 return { users, creator: id, groupName };
             } catch (e) {
-                throw new Error(e?.message ?? "Looks like something went wrong.")
+                throw new Error(e?.message ?? "Looks like something went wrong.");
             }
         },
-        deleteGroup: async(_parent: any, {groupId}: {groupId: string}, context: { token: string }) => {
+        deleteGroup: async(_parent: any, {groupId}: { groupId: string }, context: { token: string }) => {
             try {
                 const userData: { id: string } = await getUserFromToken(context.token);
                 const { id } = userData;
@@ -46,7 +46,7 @@ const groupMessageResolver = {
                 throw new Error(e?.message ?? "Looks like something went wrong.")
             }
         },
-        addUser: async(_parent: any, {groupId, userId}: {groupId: string, userId: string}, context: { token: string }) => {
+        addUser: async(_parent: any, {groupId, userId}: { groupId: string, userId: string }, context: { token: string }) => {
             try {
                 const userData: { id: string } = await getUserFromToken(context.token);
                 const { id } = userData;
@@ -57,7 +57,7 @@ const groupMessageResolver = {
                 users.forEach(user => {
                     if(user.user === id) {
                         isPresent = true;
-                        if(user.role !== "Admin") throw new Error("You're not permitted")
+                        if(user.role !== "Admin") throw new Error("You're not permitted");
                     }
                 })
                 if(!isPresent) throw new Error("User is not present in this group.");
@@ -75,7 +75,7 @@ const groupMessageResolver = {
                 return updatedUser;
             }
             catch(e) {
-                throw new Error(e?.message ?? "Looks like something went wrong.")
+                throw new Error(e?.message ?? "Looks like something went wrong.");
             }
         }
     }

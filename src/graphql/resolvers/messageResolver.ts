@@ -41,7 +41,7 @@ const messageResolver = {
           }
           var formattedTime: string;
           if(msg.createdAt){
-            const date = new Date(msg.createdAt)
+            const date = new Date(msg.createdAt);
             var hours = date.getHours();
             var minutes = date.getMinutes();
   
@@ -50,10 +50,10 @@ const messageResolver = {
           return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00", to: msg?.sender };
         });
       } catch (e) {
-        throw new Error(e?.message ?? "Looks like something went wrong.")
+        throw new Error(e?.message ?? "Looks like something went wrong.");
       }
     },
-    showUserMessage: async (_ : any, {sender}: {sender: string}, context: { token : string }) => {
+    showUserMessage: async (_ : any, {sender}: { sender: string }, context: { token : string }) => {
       try {
         const userData : { id: string } = await getUserFromToken(context.token);
         const { id } = userData;
@@ -62,7 +62,7 @@ const messageResolver = {
           return showGroupMessages(sender, context);
         }
         const dbMessages = await Message.find({
-          $or: [{$and:[ {to: id}, {sender: sender}] }, { $and:[ {sender: id}, {to: sender}] }]
+          $or: [{ $and:[ {to: id}, {sender: sender}] }, { $and:[ {sender: id}, {to: sender}] }]
         });
         return dbMessages.map(async (msg) => {
           let file = null;
@@ -73,7 +73,7 @@ const messageResolver = {
           }
           var formattedTime: string;
           if(msg.createdAt){
-            const date = new Date(msg.createdAt)
+            const date = new Date(msg.createdAt);
             var hours = date.getHours();
             var minutes = date.getMinutes();
   
@@ -83,7 +83,7 @@ const messageResolver = {
           return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00", to: msg?.sender, date: fullDate ?? "Last Year."  };
         });
       } catch (e) {
-        throw new Error(e?.message ?? "Looks like something went wrong.")
+        throw new Error(e?.message ?? "Looks like something went wrong.");
       }
     },
     

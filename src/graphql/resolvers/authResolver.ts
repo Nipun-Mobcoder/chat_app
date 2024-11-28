@@ -8,7 +8,7 @@ const authResolver = {
     login: async (_parent: any, { email, password }: { email: string, password: string }) => {
       const userDoc = await User.findOne({ email });
       if (userDoc && password === userDoc.password) {
-        const token = jwt.sign({ email: userDoc.email, id: userDoc._id, userName: userDoc.userName }, process.env.JWT_Secret);
+        const token = jwt.sign({ email: userDoc.email, id: userDoc._id, userName: userDoc.userName, isAdmin: userDoc?.isAdmin ?? false, role: userDoc?.role ?? "Client", address: userDoc?.address ?? null, walletAmount: userDoc?.walletAmount ?? 0 }, process.env.JWT_Secret);
         return {token, name: userDoc.userName};
       } else {
         throw new Error("Invalid credentials");
@@ -16,10 +16,18 @@ const authResolver = {
     },
   },
   Mutation: {
-    register: async (_parent: any, { userName, email, password }: { userName: string, email: string, password: string }) => {
-      const userDoc = await User.create({ userName, email, password });
-      await generateKeyPair(email);
-      return userDoc;
+    register: async (_parent: any, {userName, email, password, isAdmin, address, phoneNumber}: { userName: string, email: string, password: string, isAdmin: Boolean, address: any, phoneNumber: number }) => {
+      try {
+        const emailRegex = /^[^\W_]+\w*(?:[.-]\w*)*[^\W_]+@[^\W_]+(?:[.-]?\w*[^\W_]+)*(?:\.[^\W_]{2,})$/;
+        if(!emailRegex.test(email))
+          throw new Error("Please type a correct email Id");
+        await generateKeyPair(email);
+        const userDoc = await User.create({ userName, email, password, isAdmin, role : isAdmin ? "Admin" : "Client", address, phoneNumber });
+        return userDoc;
+      }
+      catch(e) {
+        throw new Error(e?.message ?? "Looks like something went wrong.");
+      }
     }
   },
 };

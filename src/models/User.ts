@@ -9,7 +9,8 @@ const UserSchema = new Schema({
   isAdmin: {type: Boolean, default: false},
   role: {type: String, enum: ['Admin', 'Client', 'Engineer', 'Tester'], default: 'Client'},
   walletAmount: Number,
-  address: Schema.Types.Mixed
+  address: Schema.Types.Mixed,
+  phoneNumber: Number  
 });
 
 UserSchema.index({ userName: 'text', email: 'text' }, { name: 'name_email_text' });

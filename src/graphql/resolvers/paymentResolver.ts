@@ -18,8 +18,8 @@ const paymentResolver = {
         },
         verifyPayment: async (_parent: any, { razorpayOrderId, razorpayPaymentId, razorpaySignature, to, amount, currency }: { razorpayOrderId: string, razorpayPaymentId: string, razorpaySignature: string, to: string, amount: string, currency: string }, context: { token: string }) => {
             const userData: { id: string, userName: string } = await getUserFromToken(context.token);
-            const user = await User.findOne({ _id: to })
-            const payment = await Payment.create({ user_id: user._id, from_id: userData.id, amount, paymentDate: new Date(), paymentMethod: "Paytm", currency: currency ?? "INR" })
+            const user = await User.findOne({ _id: to });
+            const payment = await Payment.create({ user_id: user._id, from_id: userData.id, amount, paymentDate: new Date(), paymentMethod: "Paytm", currency: currency ?? "INR" });
             try {
                 const sign = razorpayOrderId + '|' + razorpayPaymentId;
 
@@ -27,16 +27,15 @@ const paymentResolver = {
                     .update(sign.toString())
                     .digest('hex');
 
-
                 const sender = await User.findOne({ _id: userData.id });
                 if (razorpaySignature === expectedSign) {
                     const addedAmount = user?.walletAmount ? user.walletAmount + payment.amount : payment.amount;
                     const subtractedAmount = sender.walletAmount - payment.amount;
 
-                    await User.findOneAndUpdate({ _id: user._id }, { walletAmount: addedAmount }, {new: true})
-                    await User.findOneAndUpdate({ _id: sender._id }, { walletAmount: subtractedAmount }, {new: true})
-                    await Payment.updateOne({_id: payment._id}, { status: "Success" });
-                    
+                    await User.findOneAndUpdate({ _id: user._id }, { walletAmount: addedAmount }, { new: true });
+                    await User.findOneAndUpdate({ _id: sender._id }, { walletAmount: subtractedAmount }, { new: true });
+                    await Payment.updateOne({ _id: payment._id }, { status: "Success" });
+
                     return 'Payment verified successfully';
                 } else {
                     await Payment.updateOne({_id: payment._id}, { status: "Failure" });
@@ -44,7 +43,7 @@ const paymentResolver = {
                 }
             } catch (e) {
                 await Payment.updateOne({_id: payment._id}, { status: "Failure" });
-                throw new Error(e?.message ?? "Looks like something went wrong.")
+                throw new Error(e?.message ?? "Looks like something went wrong.");
             }
         }
     }
