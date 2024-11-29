@@ -42,11 +42,14 @@ const typeDefs = `
     type loginResponse {
         token: String
         name: String
+        email: String
+        phoneNumber: Float
     }
 
     type allUser {
         id: String
         user: String
+        cur: Boolean
     }
 
     type paginationType {
@@ -106,7 +109,8 @@ const typeDefs = `
         deleteGroup(groupId: String!): groupType
         addUser(groupId: ID!, userId: ID!): groupType
         createOrder(amount: String!, currency: String!, to: String!): Order!
-        verifyPayment(razorpayOrderId: String!, razorpayPaymentId: String!, razorpaySignature: String!, to: String!, amount: String!, currency: String!): String! 
+        verifyPayment(razorpayOrderId: String!, razorpayPaymentId: String!, razorpaySignature: String!, to: String!): String! 
+        paymentFailure(paymentOrderId: String!): String
     }
 
     type Subscription {

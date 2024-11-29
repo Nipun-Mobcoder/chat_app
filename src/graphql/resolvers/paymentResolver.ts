@@ -9,17 +9,20 @@ const paymentResolver = {
     Mutation: {
         createOrder: async (_parent: any, { amount, currency, to }: { amount: string, currency: string, to: string }, context: { token: string }) => {
             try {
+                const userData: { id: string, userName: string } = await getUserFromToken(context.token);
+                const user = await User.findOne({ _id: to });
                 const amountInT = Number(amount);
                 const order = await createOrder(amountInT, currency);
+                await Payment.create({ user_id: user._id, from_id: userData.id, amount: amountInT, paymentDate: new Date(), paymentMethod: "Paytm", currency: currency ?? "INR", paymentOrderId: order.id });
                 return order;
             } catch (e) {
                 throw new Error(e?.message ?? "Looks like something went wrong.")
             }
         },
-        verifyPayment: async (_parent: any, { razorpayOrderId, razorpayPaymentId, razorpaySignature, to, amount, currency }: { razorpayOrderId: string, razorpayPaymentId: string, razorpaySignature: string, to: string, amount: string, currency: string }, context: { token: string }) => {
+        verifyPayment: async (_parent: any, { razorpayOrderId, razorpayPaymentId, razorpaySignature, to }: { razorpayOrderId: string, razorpayPaymentId: string, razorpaySignature: string, to: string, amount: string, currency: string }, context: { token: string }) => {
             const userData: { id: string, userName: string } = await getUserFromToken(context.token);
             const user = await User.findOne({ _id: to });
-            const payment = await Payment.create({ user_id: user._id, from_id: userData.id, amount, paymentDate: new Date(), paymentMethod: "Paytm", currency: currency ?? "INR" });
+            const payment = await Payment.findOne({ paymentOrderId: razorpayOrderId });
             try {
                 const sign = razorpayOrderId + '|' + razorpayPaymentId;
 
@@ -45,6 +48,10 @@ const paymentResolver = {
                 await Payment.updateOne({_id: payment._id}, { status: "Failure" });
                 throw new Error(e?.message ?? "Looks like something went wrong.");
             }
+        },
+        paymentFailure: async (_parent: any, { paymentOrderId }: { paymentOrderId: string }, context: { token: string }) => {
+            await Payment.updateOne({ paymentOrderId: paymentOrderId }, { status: "Failure" });
+            return "Payment Failed."
         }
     }
 }

@@ -4,6 +4,11 @@ interface DecodedUser {
     id: string;
     userName: string;
     email: string;
+    phoneNumber: number;
+    isAdmin: boolean; 
+    role: string; 
+    address: string; 
+    walletAmount: number
 }
 
 export const getUserFromToken = async (token: string): Promise<DecodedUser> => {

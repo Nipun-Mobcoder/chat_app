@@ -35,6 +35,11 @@ const PaymentSchema = new Schema({
     enum: ['Pending', 'Success', 'Failure'],
     default: 'Pending',
     required: true
+  },
+  paymentOrderId: { 
+    type: String,
+    required: true,
+    unique: true
   }
 });
 

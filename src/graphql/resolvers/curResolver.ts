@@ -12,12 +12,12 @@ const curResolver = {
         const { id } = userData;
 
         const users = await User.find({});
-        const allUsers = users.map(user => ({ id: String(user._id), user: user.userName }));
+        const allUsers = users.map(user => ({ id: String(user._id), user: user.userName, cur: userData.id === String(user._id) }));
 
         const groupDetails = await Group.find({});
         const userGroups = groupDetails
           .filter(group => group.users.some(user => user.user === id))
-          .map(group => ({ id: group._id.toString(), user: group.groupName }));
+          .map(group => ({ id: group._id.toString(), user: group.groupName, cur: false }));
 
         return [...allUsers, ...userGroups];
       }

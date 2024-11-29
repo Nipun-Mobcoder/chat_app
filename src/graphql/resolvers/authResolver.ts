@@ -8,8 +8,8 @@ const authResolver = {
     login: async (_parent: any, { email, password }: { email: string, password: string }) => {
       const userDoc = await User.findOne({ email });
       if (userDoc && password === userDoc.password) {
-        const token = jwt.sign({ email: userDoc.email, id: userDoc._id, userName: userDoc.userName, isAdmin: userDoc?.isAdmin ?? false, role: userDoc?.role ?? "Client", address: userDoc?.address ?? null, walletAmount: userDoc?.walletAmount ?? 0 }, process.env.JWT_Secret);
-        return {token, name: userDoc.userName};
+        const token = jwt.sign({ email: userDoc.email, id: userDoc._id, userName: userDoc.userName, isAdmin: userDoc?.isAdmin ?? false, role: userDoc?.role ?? "Client", address: userDoc?.address ?? null, walletAmount: userDoc?.walletAmount ?? 0, phoneNumber: userDoc.phoneNumber }, process.env.JWT_Secret);
+        return {token, name: userDoc.userName, email: userDoc.email, phoneNumber: userDoc.phoneNumber ?? 9999999999};
       } else {
         throw new Error("Invalid credentials");
       }
