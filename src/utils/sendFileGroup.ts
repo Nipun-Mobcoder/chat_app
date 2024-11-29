@@ -4,7 +4,7 @@ import { getUserFromToken } from "./jwt.js";
 import pubsub from "./pubsub.js";
 import { getPresignedUrl, s3 } from "./s3.js";
 
-const sendFileGroup = async (context: {token: string}, fileName: string, uploadId: string, parts: any, to: string) => {
+const sendFileGroup = async (context: {token: string}, fileName: string, uploadId: string, parts: { etag: string; }[], to: string) => {
     try {
         const userData: { id: string, userName: string } = await getUserFromToken(context.token);
         const { id, userName } = userData;
@@ -17,7 +17,7 @@ const sendFileGroup = async (context: {token: string}, fileName: string, uploadI
             Key: fileName,
             UploadId: uploadId,
             MultipartUpload: {
-                Parts: parts.map((part: { etag: any; }, index: number) => ({
+                Parts: parts.map((part: { etag: string; }, index: number) => ({
                 ETag: part.etag,
                 PartNumber: index + 1,
                 })),

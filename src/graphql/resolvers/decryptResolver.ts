@@ -43,9 +43,7 @@ const decryptResolver = {
             }
         },
         search: async (_parent: any, { searchText }: {searchText: string}, context: {token: string}) => {
-            const userData : { id: string, userName: string } = await getUserFromToken(context.token);
-            
-            const filter: any = {
+            const filter = {
                 $text: {$search: searchText, $caseSensitive: false, $diacriticSensitive: false},
             }
 

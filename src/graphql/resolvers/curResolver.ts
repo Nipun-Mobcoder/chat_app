@@ -28,7 +28,7 @@ const curResolver = {
     pagination: async (_: any, { pageNumber, limit }: { pageNumber: number, limit: number }, context: { token: string }) => {
       try {
         const userData : { id: string, userName: string, email: string } = await getUserFromToken(context.token);
-        var message : any = await Message.aggregate([
+        var message = await Message.aggregate([
           { "$match": { "$or": [ { "to": userData.id }, { "id": userData.id } ] } },
           {
             "$facet": {
@@ -38,7 +38,7 @@ const curResolver = {
           }
         ])
         var messages = message[0].data;
-        const allMessages = messages.map( async (msg: { file: { url: string; filename: string; mimetype: string; }; createdAt: string | number | Date; _id: any; senderName: any; sender: any; message: any; to: any; }) => {
+        const allMessages = messages.map( async (msg: { file: { url: string; filename: string; mimetype: string; }; createdAt: string | number | Date; _id: any; senderName: string; sender: string; message: string; to: string; }) => {
           let file = null;
           if (msg.file) {
             const key = msg.file.url.split('/').pop();

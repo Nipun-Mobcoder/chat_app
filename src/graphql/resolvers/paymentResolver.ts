@@ -41,7 +41,7 @@ const paymentResolver = {
 
                     return 'Payment verified successfully';
                 } else {
-                    await Payment.updateOne({_id: payment._id}, { status: "Failure" });
+                    await Payment.updateOne({ _id: payment._id }, { status: "Failure" });
                     throw new Error('Invalid payment signature');
                 }
             } catch (e) {

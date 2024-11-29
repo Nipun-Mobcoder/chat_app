@@ -87,73 +87,75 @@ const messageResolver = {
       }
     },
     
-    
   },
   Mutation: {
     sendMessage: async (_: any, { to, message, file }: { to: string, message: string, file: FileUpload }, context: { token: string }) => {
       try {
         const userData : { id: string, userName: string } = await getUserFromToken(context.token);
         const findUser = await User.findOne({ _id: to });
+        
         if(to === process.env.CHAT_BOT_ID) return messageAI(context, message);
+        
         if(!findUser) {
           return sendMessageGroup(to, message, file, context);
         }
-          let fileData = null;
-          let subfileData = null;
+        
+        let fileData = null;
+        let subfileData = null;
 
-          if(file){
-            const { createReadStream, filename, mimetype } = file;
-            const fileStream = createReadStream();
-            const uploadResult = await uploadToS3(fileStream, filename, mimetype);
-  
-            fileData = {
-              filename,
-              mimetype,
-              url: uploadResult.Location,
-            };
-  
-            const presignedUrl = await getPresignedUrl(uploadResult.Key);
-            
-            subfileData = {
-              filename,
-              mimetype,
-              url: presignedUrl,
-            };
-          }
-  
-          const { id, userName } = userData;
-          if(message)
-            var encrypted_message = await encrypt(to, id, message);
-  
-          const newMessage = {
-            id,
-            sender: userName,
-            message: encrypted_message,
-            file: subfileData,
-            to,
+        if(file){
+          const { createReadStream, filename, mimetype } = file;
+          const fileStream = createReadStream();
+          const uploadResult = await uploadToS3(fileStream, filename, mimetype);
+
+          fileData = {
+            filename,
+            mimetype,
+            url: uploadResult.Location,
           };
 
-          await Message.create({
-            sender: id,
-            message: encrypted_message,
-            to,
-            senderName: userName,
-            file: fileData,
-          });
-  
-          pubsub.publish('MESSAGE_ADDED', {
-            showMessages: newMessage,
-            showUsersMessages: newMessage,
-            to,
-            id,
-          });
+          const presignedUrl = await getPresignedUrl(uploadResult.Key);
+          
+          subfileData = {
+            filename,
+            mimetype,
+            url: presignedUrl,
+          };
+        }
+
+        const { id, userName } = userData;
+        if(message)
+          var encrypted_message = await encrypt(to, id, message);
+
+        const newMessage = {
+          id,
+          sender: userName,
+          message: encrypted_message,
+          file: subfileData,
+          to,
+        };
+
+        await Message.create({
+          sender: id,
+          message: encrypted_message,
+          to,
+          senderName: userName,
+          file: fileData,
+        });
+
+        pubsub.publish('MESSAGE_ADDED', {
+          showMessages: newMessage,
+          showUsersMessages: newMessage,
+          to,
+          id,
+        });
         return "Message sent successfully";  
         } 
         catch (e) {
           throw new Error(e?.message ?? "Looks like something went wrong.")
         }    
       },
-      complete: async (_: any, { fileName, uploadId, parts, to }: { fileName: string, uploadId: string, parts: any, to: string }, context: { token: string }) => {
+      complete: async (_: any, { fileName, uploadId, parts, to }: { fileName: string, uploadId: string, parts: { etag: string; }[], to: string }, context: { token: string }) => {
         const userData: { id: string, userName: string } = await getUserFromToken(context.token);
         const { id, userName } = userData;
   
@@ -167,7 +169,7 @@ const messageResolver = {
           Key: fileName,
           UploadId: uploadId,
           MultipartUpload: {
-            Parts: parts.map((part: { etag: any; }, index: number) => ({
+            Parts: parts.map((part: { etag: string; }, index: number) => ({
               ETag: part.etag,
               PartNumber: index + 1,
             })),
