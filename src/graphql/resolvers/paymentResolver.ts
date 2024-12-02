@@ -4,6 +4,8 @@ import createOrder from "../../utils/createOrder.js"
 import Payment from '../../models/Payment.js';
 import { getUserFromToken } from '../../utils/jwt.js';
 import User from '../../models/User.js';
+import Message from '../../models/Message.js';
+import pubsub from '../../utils/pubsub.js';
 
 const paymentResolver = {
     Mutation: {
@@ -19,7 +21,7 @@ const paymentResolver = {
                 throw new Error(e?.message ?? "Looks like something went wrong.")
             }
         },
-        verifyPayment: async (_parent: any, { razorpayOrderId, razorpayPaymentId, razorpaySignature, to }: { razorpayOrderId: string, razorpayPaymentId: string, razorpaySignature: string, to: string, amount: string, currency: string }, context: { token: string }) => {
+        verifyPayment: async (_parent: any, { razorpayOrderId, razorpayPaymentId, razorpaySignature, to }: { razorpayOrderId: string, razorpayPaymentId: string, razorpaySignature: string, to: string }, context: { token: string }) => {
             const userData: { id: string, userName: string } = await getUserFromToken(context.token);
             const user = await User.findOne({ _id: to });
             const payment = await Payment.findOne({ paymentOrderId: razorpayOrderId });
@@ -38,6 +40,30 @@ const paymentResolver = {
                     await User.findOneAndUpdate({ _id: user._id }, { walletAmount: addedAmount }, { new: true });
                     await User.findOneAndUpdate({ _id: sender._id }, { walletAmount: subtractedAmount }, { new: true });
                     await Payment.updateOne({ _id: payment._id }, { status: "Success" });
+
+                    const newMessage = {
+                        id: userData.id,
+                        sender: userData.userName,
+                        to,
+                        paymentAmount: payment.amount,
+                        currency: payment.currency
+                      };
+
+                    await Message.create({
+                        sender: userData.id,
+                        to,
+                        senderName: userData.userName,
+                        type: 'Payment',
+                        amount: payment.amount,
+                        currency: payment.currency
+                      });
+
+                      pubsub.publish('MESSAGE_ADDED', {
+                        showMessages: newMessage,
+                        showUsersMessages: newMessage,
+                        to,
+                        id: userData.id,
+                      });
 
                     return 'Payment verified successfully';
                 } else {

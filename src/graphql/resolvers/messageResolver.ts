@@ -80,7 +80,7 @@ const messageResolver = {
             formattedTime = hours + ':' + minutes.toString().padStart(2, "0");
             var fullDate = formatDate(date);
           }
-          return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00", to: msg?.sender, date: fullDate ?? "Last Year."  };
+          return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00", to: msg?.sender, date: fullDate ?? "Last Year.", paymentAmount: msg?.amount ? msg?.amount / 100 : null, currency: msg?.currency ?? null  };
         });
       } catch (e) {
         throw new Error(e?.message ?? "Looks like something went wrong.");

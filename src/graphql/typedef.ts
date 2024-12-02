@@ -17,6 +17,8 @@ const typeDefs = `
         createdAt: String
         to: String
         date: String
+        paymentAmount: Int
+        currency: String
     }
 
     type User {

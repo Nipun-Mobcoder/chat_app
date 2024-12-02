@@ -14,7 +14,10 @@ const MessageSchema = new Schema({
   to: String,
   senderName: String,
   file: FileSchema,
-  isGroup: { type: Boolean, default: false }
+  isGroup: { type: Boolean, default: false },
+  type: { type: String, default: 'Message' },
+  amount: Number,
+  currency: String
 }, { timestamps: true });
 
 const Message = mongoose.model("Message", MessageSchema);
