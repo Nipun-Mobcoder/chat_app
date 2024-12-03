@@ -141,80 +141,81 @@ const messageResolver = {
           to,
           senderName: userName,
           file: fileData,
+          type: fileData ? 'File' : 'Message'
         });
 
         pubsub.publish('MESSAGE_ADDED', {
           showMessages: newMessage,
           showUsersMessages: newMessage,
           to,
-          id,
+          id
         });
-        return "Message sent successfully";  
-        } 
-        catch (e) {
-          throw new Error(e?.message ?? "Looks like something went wrong.")
-        }    
-      },
-      complete: async (_: any, { fileName, uploadId, parts, to }: { fileName: string, uploadId: string, parts: { etag: string; }[], to: string }, context: { token: string }) => {
-        const userData: { id: string, userName: string } = await getUserFromToken(context.token);
-        const { id, userName } = userData;
-  
-        const findUser = await User.findOne({ _id: to });
-        if(!findUser) {
-          return sendFileGroup(context, fileName, uploadId, parts, to);
-        }
+        return "Message sent successfully";
+      } catch (e) {
+        throw new Error(e?.message ?? "Looks like something went wrong.");
+      }
+    },
+    complete: async (_: any, { fileName, uploadId, parts, to }: { fileName: string, uploadId: string, parts: { etag: string; }[], to: string }, context: { token: string }) => {
+      const userData: { id: string, userName: string } = await getUserFromToken(context.token);
+      const { id, userName } = userData;
 
-        const params = {
-          Bucket: process.env.S3_BUCKET_NAME,
-          Key: fileName,
-          UploadId: uploadId,
-          MultipartUpload: {
-            Parts: parts.map((part: { etag: string; }, index: number) => ({
-              ETag: part.etag,
-              PartNumber: index + 1,
-            })),
+      const findUser = await User.findOne({ _id: to });
+      if(!findUser) {
+        return sendFileGroup(context, fileName, uploadId, parts, to);
+      }
+
+      const params = {
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: fileName,
+        UploadId: uploadId,
+        MultipartUpload: {
+          Parts: parts.map((part: { etag: string; }, index: number) => ({
+            ETag: part.etag,
+            PartNumber: index + 1,
+          })),
+        },
+      };
+
+      try {
+        const data = await s3.completeMultipartUpload(params).promise();
+        const fileUrl = data.Location;
+        const presignedUrl = await getPresignedUrl(data.Key);
+        const newMessage = {
+          id,
+          sender: userName,
+          message: '',
+          file: {
+            filename: fileName,
+            mimetype: 'video/mp4',
+            url: presignedUrl
           },
+          to
         };
-  
-        try {
-          const data = await s3.completeMultipartUpload(params).promise();
-          const fileUrl = data.Location;
-          const presignedUrl = await getPresignedUrl(data.Key);
-          const newMessage = {
-            id,
-            sender: userName,
-            message: '',
-            file: {
-              filename: fileName,
-              mimetype: 'video/mp4',
-              url: presignedUrl,
-            },
-            to,
-          };
-  
-          pubsub.publish('FILE_ADDED', {
-            showMessages: newMessage,
-            showUsersMessages: newMessage,
-            to,
-            id,
-            isGroup: false
-          });
-  
-          await Message.create({
-            sender: id,
-            message: '',
-            to,
-            senderName: userName,
-            file: {
-              filename: fileName,
-              url: fileUrl,
-            },
-          });
-  
-          return "Message sent successfully";
-        } catch (error) {
-          throw new Error(error?.message ?? "Failed to complete multipart upload.");
-        }
+
+        pubsub.publish('FILE_ADDED', {
+          showMessages: newMessage,
+          showUsersMessages: newMessage,
+          to,
+          id,
+          isGroup: false
+        });
+
+        await Message.create({
+          sender: id,
+          message: '',
+          to,
+          senderName: userName,
+          file: {
+            filename: fileName,
+            url: fileUrl
+          },
+          type: 'File'
+        });
+
+        return "Message sent successfully";
+      } catch (error) {
+        throw new Error(error?.message ?? "Failed to complete multipart upload.");
+      }
     },
   },
   Subscription: {
