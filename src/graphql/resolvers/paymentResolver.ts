@@ -6,6 +6,7 @@ import { getUserFromToken } from '../../utils/jwt.js';
 import User from '../../models/User.js';
 import Message from '../../models/Message.js';
 import pubsub from '../../utils/pubsub.js';
+import formatDate from '../../utils/formatDate.js';
 
 const paymentResolver = {
     Mutation: {
@@ -13,6 +14,9 @@ const paymentResolver = {
             try {
                 const userData: { id: string, userName: string } = await getUserFromToken(context.token);
                 const user = await User.findOne({ _id: to });
+                const curUser = await User.findOne({ _id: userData.id });
+                if(curUser.walletAmount < Number(amount)) 
+                    throw new Error("You don't have enough balance.");
                 const amountInT = Number(amount);
                 const order = await createOrder(amountInT, currency);
                 await Payment.create({ user_id: user._id, from_id: userData.id, amount: amountInT, paymentDate: new Date(), paymentMethod: "Paytm", currency: currency ?? "INR", paymentOrderId: order.id });
@@ -41,12 +45,16 @@ const paymentResolver = {
                     await User.findOneAndUpdate({ _id: sender._id }, { walletAmount: subtractedAmount }, { new: true });
                     await Payment.updateOne({ _id: payment._id }, { status: "Success" });
 
+                    const date = new Date();
+                    var fullDate = formatDate(date);
+
                     const newMessage = {
                         id: userData.id,
                         sender: userData.userName,
                         to,
                         paymentAmount: payment.amount,
-                        currency: payment.currency
+                        currency: payment.currency,
+                        date: fullDate
                       };
 
                     await Message.create({

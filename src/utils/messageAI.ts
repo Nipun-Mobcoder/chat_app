@@ -3,6 +3,7 @@ import Message from "../models/Message.js";
 import chatAI from "./chatAI.js";
 import pubsub from "./pubsub.js";
 import User from "../models/User.js";
+import formatDate from "./formatDate.js";
 
 const messageAI = async (context: { token: string }, prompt: string) => {
     try {
@@ -12,6 +13,10 @@ const messageAI = async (context: { token: string }, prompt: string) => {
         const { id, userName } = userData;
 
         const chat_bot = await User.findOne({ _id: to });
+
+        const date = new Date();
+
+        var fullDate = formatDate(date);
 
         await Message.create({
             sender: id,
@@ -26,6 +31,7 @@ const messageAI = async (context: { token: string }, prompt: string) => {
             message: prompt,
             file: null,
             to,
+            date: fullDate
           };
 
         pubsub.publish('MESSAGE_ADDED', {
@@ -50,6 +56,7 @@ const messageAI = async (context: { token: string }, prompt: string) => {
             message,
             file: null,
             to: id,
+            date: fullDate
           };
   
           pubsub.publish('MESSAGE_ADDED', {

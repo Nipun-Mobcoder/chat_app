@@ -62,8 +62,9 @@ const messageResolver = {
           return showGroupMessages(sender, context);
         }
         const dbMessages = await Message.find({
-          $or: [{ $and:[ {to: id}, {sender: sender}] }, { $and:[ {sender: id}, {to: sender}] }]
-        });
+          $or: [{ $and:[ {to: id}, {sender: sender}] }, { $and:[ {sender: id}, {to: sender}] }],
+        })
+        // .sort({ createdAt: -1 }).limit(10);
         return dbMessages.map(async (msg) => {
           let file = null;
           if (msg.file) {
@@ -72,6 +73,7 @@ const messageResolver = {
             file = { filename: msg.file.filename, mimetype: msg.file.mimetype, url: presignedUrl };
           }
           var formattedTime: string;
+
           if(msg.createdAt){
             const date = new Date(msg.createdAt);
             var hours = date.getHours();
@@ -127,12 +129,16 @@ const messageResolver = {
         if(message)
           var encrypted_message = await encrypt(to, id, message);
 
+        const date = new Date();
+        var fullDate = formatDate(date);
+
         const newMessage = {
           id,
           sender: userName,
           message: encrypted_message,
           file: subfileData,
           to,
+          date: fullDate
         };
 
         await Message.create({
@@ -141,7 +147,7 @@ const messageResolver = {
           to,
           senderName: userName,
           file: fileData,
-          type: fileData ? 'File' : 'Message'
+          type: fileData ? 'File' : 'Message',
         });
 
         pubsub.publish('MESSAGE_ADDED', {
@@ -253,7 +259,6 @@ const messageResolver = {
         }
       ),
     }
-    
   },
 };
 

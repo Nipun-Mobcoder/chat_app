@@ -9,7 +9,7 @@ const authResolver = {
       const userDoc = await User.findOne({ email });
       if (userDoc && password === userDoc.password) {
         const token = jwt.sign({ email: userDoc.email, id: userDoc._id, userName: userDoc.userName, isAdmin: userDoc?.isAdmin ?? false, role: userDoc?.role ?? "Client", address: userDoc?.address ?? null, walletAmount: userDoc?.walletAmount ?? 0, phoneNumber: userDoc.phoneNumber }, process.env.JWT_Secret);
-        return {token, name: userDoc.userName, email: userDoc.email, phoneNumber: userDoc.phoneNumber ?? 9999999999};
+        return {token, name: userDoc.userName, email: userDoc.email, phoneNumber: userDoc.phoneNumber ?? 9999999999, id: userDoc._id.toString()};
       } else {
         throw new Error("Invalid credentials");
       }

@@ -46,6 +46,7 @@ const typeDefs = `
         name: String
         email: String
         phoneNumber: Float
+        id: ID
     }
 
     type allUser {
