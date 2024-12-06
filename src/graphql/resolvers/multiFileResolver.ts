@@ -22,23 +22,28 @@ const multiFileResolver = {
     },
 
     generateMultipart: async (_: any, { fileName, uploadId, partNumbers }: { fileName: string, uploadId: string, partNumbers: number }, context: { token: string }) => {
-      const totalParts = Array.from({ length: partNumbers }, (_, i) => i + 1);
-
-      const presignedUrls = await Promise.all(
-        totalParts.map(async (partNumber) => {
-          const params = {
-            Bucket: process.env.S3_BUCKET_NAME,
-            Key: fileName,
-            PartNumber: partNumber,
-            UploadId: uploadId,
-            Expires: 60 * 60
-          };
-
-          return s3.getSignedUrl("uploadPart", params);
-        })
-      );
-
-      return presignedUrls;
+      try {
+        const totalParts = Array.from({ length: partNumbers }, (_, i) => i + 1);
+  
+        const presignedUrls = await Promise.all(
+          totalParts.map(async (partNumber) => {
+            const params = {
+              Bucket: process.env.S3_BUCKET_NAME,
+              Key: fileName,
+              PartNumber: partNumber,
+              UploadId: uploadId,
+              Expires: 60 * 60
+            };
+  
+            return s3.getSignedUrl("uploadPart", params);
+          })
+        );
+  
+        return presignedUrls;
+      } catch (e) {
+        console.log(e);
+        throw new Error(e?.message ?? "Looks like something went wrong.")
+      }
     },
   },
 };

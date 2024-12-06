@@ -82,7 +82,7 @@ const messageResolver = {
             formattedTime = hours + ':' + minutes.toString().padStart(2, "0");
             var fullDate = formatDate(date);
           }
-          return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00", to: msg?.sender, date: fullDate ?? "Last Year.", paymentAmount: msg?.amount ? msg?.amount / 100 : null, currency: msg?.currency ?? null  };
+          return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00", to: msg?.sender, date: fullDate ?? "Last Year.", paymentAmount: msg?.amount ? msg?.amount : null, currency: msg?.currency ?? null  };
         });
       } catch (e) {
         throw new Error(e?.message ?? "Looks like something went wrong.");
@@ -101,16 +101,13 @@ const messageResolver = {
         if(!findUser) {
           return sendMessageGroup(to, message, file, context);
         }
-        
-        let fileData = null;
-        let subfileData = null;
 
         if(file){
-          const { createReadStream, filename, mimetype } = file;
+          const { createReadStream, filename, mimetype } = await file;
           const fileStream = createReadStream();
           const uploadResult = await uploadToS3(fileStream, filename, mimetype);
 
-          fileData = {
+          var fileData = {
             filename,
             mimetype,
             url: uploadResult.Location,
@@ -118,7 +115,7 @@ const messageResolver = {
 
           const presignedUrl = await getPresignedUrl(uploadResult.Key);
           
-          subfileData = {
+          var subfileData = {
             filename,
             mimetype,
             url: presignedUrl,

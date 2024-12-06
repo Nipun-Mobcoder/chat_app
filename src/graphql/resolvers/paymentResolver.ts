@@ -84,8 +84,13 @@ const paymentResolver = {
             }
         },
         paymentFailure: async (_parent: any, { paymentOrderId }: { paymentOrderId: string }, context: { token: string }) => {
-            await Payment.updateOne({ paymentOrderId: paymentOrderId }, { status: "Failure" });
-            return "Payment Failed."
+            try {
+                await Payment.updateOne({ paymentOrderId: paymentOrderId }, { status: "Failure" });
+                return "Payment Failed."
+            } catch (e) {
+                console.log(e);
+                throw new Error(e?.message ?? "Looks like something went wrong.")
+            }
         }
     }
 }
