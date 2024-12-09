@@ -42,7 +42,7 @@ const sendFileGroup = async (context: {token: string}, fileName: string, uploadI
         pubsub.publish('FILE_ADDED', {
             showMessages: newMessage,
             showUsersMessages: newMessage,
-            to,
+            groupId: to,
             id,
             isGroup: true
         });
