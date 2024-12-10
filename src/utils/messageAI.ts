@@ -50,21 +50,21 @@ const messageAI = async (context: { token: string }, prompt: string) => {
             senderName: chat_bot.userName,
         });
 
-          newMessage = {
-            id: to,
-            sender: chat_bot.userName,
-            message,
-            file: null,
-            to: id,
-            date: fullDate
-          };
-  
-          pubsub.publish('MESSAGE_ADDED', {
-            showMessages: newMessage,
-            showUsersMessages: newMessage,
-            to: id,
-            id: to,
-          });
+        newMessage = {
+          id: to,
+          sender: chat_bot.userName,
+          message,
+          file: null,
+          to: id,
+          date: fullDate
+        };
+
+        pubsub.publish('MESSAGE_ADDED', {
+          showMessages: newMessage,
+          showUsersMessages: newMessage,
+          to: id,
+          id: to,
+        });
 
         return message;  
     } 

@@ -89,6 +89,11 @@ const typeDefs = `
         status: String!
     }
 
+    type Feature {
+        payment: Boolean!
+        file: Boolean!
+    }
+
     type Query {
         messages: [Message]
         showUserMessage(sender: String!): [Message]
@@ -102,6 +107,7 @@ const typeDefs = `
         searchAuto(searchText: String!): [User!]
         status: String
         typingStatus(isTyping: Boolean!, to: String!): String
+        checkFeature(to: ID!): Feature
     }
 
     type Mutation {

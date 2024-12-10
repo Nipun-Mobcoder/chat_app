@@ -68,6 +68,35 @@ const curResolver = {
       catch(e) {
         throw new Error(e?.message ?? "Looks like something went wrong.")
       }
+    },
+    checkFeature: async (_parent: any, {to}: { to: string }, context: { token: string }) => {
+      try {
+        const userData : { id: string, userName: string, email: string } = await getUserFromToken(context.token);
+        const findUser = await User.findOne({ _id: to });
+        
+        if(to === process.env.CHAT_BOT_ID) 
+          return {
+            payment: false,
+            file: false
+          }
+        
+        if(!findUser) {
+          const findGroup = await Group.findOne({ _id: to });
+          if(!findGroup) throw new Error("Wrong info provided.");
+          return {
+            payment: false,
+            file: true
+          }
+        }
+
+        return {
+          payment: true,
+          file: true
+        }
+      } catch(e) {
+        console.log(e);
+        throw new Error(e?.message ?? "Looks like something went wrong.")
+      }
     }
   },
 };
