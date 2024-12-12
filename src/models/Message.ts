@@ -8,6 +8,11 @@ const FileSchema = new Schema({
   url: String,
 });
 
+const LocationSchema = new Schema({
+  lng: Number,
+  lat: Number
+});
+
 const MessageSchema = new Schema({
   sender: String,
   message: String,
@@ -17,7 +22,8 @@ const MessageSchema = new Schema({
   isGroup: { type: Boolean, default: false },
   type: { type: String, default: 'Message' },
   amount: Number,
-  currency: String
+  currency: String,
+  location: LocationSchema
 }, { timestamps: true });
 
 const Message = mongoose.model("Message", MessageSchema);

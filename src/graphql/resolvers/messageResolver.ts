@@ -47,7 +47,7 @@ const messageResolver = {
   
             formattedTime = hours + ':' + minutes.toString().padStart(2, "0");
           }
-          return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00", to: msg?.sender };
+          return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00", to: msg?.sender, location: msg?.location };
         });
       } catch (e) {
         throw new Error(e?.message ?? "Looks like something went wrong.");
@@ -82,7 +82,7 @@ const messageResolver = {
             formattedTime = hours + ':' + minutes.toString().padStart(2, "0");
             var fullDate = formatDate(date);
           }
-          return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00", to: msg?.sender, date: fullDate ?? "Last Year.", paymentAmount: msg?.amount ? msg?.amount : null, currency: msg?.currency ?? null  };
+          return { id: msg._id.toString(), sender: msg.senderName ?? msg.sender, message: msg.message, file, createdAt: msg.createdAt ? formattedTime : "00:00", to: msg?.sender, date: fullDate ?? "Last Year.", paymentAmount: msg?.amount ? msg?.amount : null, currency: msg?.currency ?? null, location: msg?.location  };
         });
       } catch (e) {
         throw new Error(e?.message ?? "Looks like something went wrong.");
@@ -91,7 +91,7 @@ const messageResolver = {
     
   },
   Mutation: {
-    sendMessage: async (_: any, { to, message, file }: { to: string, message: string, file: FileUpload }, context: { token: string }) => {
+    sendMessage: async (_: any, { to, message, file, location }: { to: string, message: string, file: FileUpload, location: { lng: number, lat: number } }, context: { token: string }) => {
       try {
         const userData : { id: string, userName: string } = await getUserFromToken(context.token);
         const findUser = await User.findOne({ _id: to });
@@ -135,7 +135,8 @@ const messageResolver = {
           message: encrypted_message,
           file: subfileData,
           to,
-          date: fullDate
+          date: fullDate,
+          location
         };
 
         await Message.create({
@@ -144,7 +145,8 @@ const messageResolver = {
           to,
           senderName: userName,
           file: fileData,
-          type: fileData ? 'File' : 'Message',
+          type: location ? 'Location' : fileData ? 'File' : 'Message',
+          location
         });
 
         pubsub.publish('MESSAGE_ADDED', {

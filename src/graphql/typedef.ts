@@ -9,6 +9,11 @@ const typeDefs = `
         Admin
     }
 
+    type Location {
+        lng: Float
+        lat: Float
+    }
+
     type Message {
         id: ID!
         sender: String
@@ -19,6 +24,7 @@ const typeDefs = `
         date: String
         paymentAmount: Int
         currency: String
+        location: Location
     }
 
     type User {
@@ -94,6 +100,11 @@ const typeDefs = `
         file: Boolean!
     }
 
+    input Locate {
+        lng: Float
+        lat: Float
+    }
+
     type Query {
         messages: [Message]
         showUserMessage(sender: String!): [Message]
@@ -112,7 +123,7 @@ const typeDefs = `
 
     type Mutation {
         register(userName: String!, email: String!, password: String!, isAdmin: Boolean, address: JSON, phoneNumber: Int): User
-        sendMessage(to: ID!, message: String, file: Upload): String
+        sendMessage(to: ID!, message: String, file: Upload, location: Locate): String
         complete(fileName: String!, uploadId: String!, parts: [PartType!]!, to: String!): String
         createGroup(groupName: String!, ids: [String!]! ): groupType
         deleteGroup(groupId: String!): groupType
