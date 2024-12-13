@@ -98,6 +98,7 @@ const typeDefs = `
     type Feature {
         payment: Boolean!
         file: Boolean!
+        map: Boolean!
     }
 
     input Locate {

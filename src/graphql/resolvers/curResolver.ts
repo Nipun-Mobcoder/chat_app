@@ -77,7 +77,8 @@ const curResolver = {
         if(to === process.env.CHAT_BOT_ID) 
           return {
             payment: false,
-            file: false
+            file: false,
+            map: false
           }
         
         if(!findUser) {
@@ -85,13 +86,15 @@ const curResolver = {
           if(!findGroup) throw new Error("Wrong info provided.");
           return {
             payment: false,
-            file: true
+            file: true,
+            map: true
           }
         }
 
         return {
           payment: true,
-          file: true
+          file: true,
+          map: true
         }
       } catch(e) {
         console.log(e);
