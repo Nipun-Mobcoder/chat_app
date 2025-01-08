@@ -132,6 +132,7 @@ const typeDefs = `
         createOrder(amount: String!, currency: String!, to: String!): Order!
         verifyPayment(razorpayOrderId: String!, razorpayPaymentId: String!, razorpaySignature: String!, to: String!): String! 
         paymentFailure(paymentOrderId: String!): String
+        saveSegment(presignedUrl: String, to: String, fileName: String): String
     }
 
     type Subscription {

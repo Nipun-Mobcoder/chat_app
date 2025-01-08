@@ -14,6 +14,8 @@ import showGroupMessages from "../../utils/showMessageGroup.js";
 import sendFileGroup from "../../utils/sendFileGroup.js";
 import formatDate from "../../utils/formatDate.js";
 import messageAI from '../../utils/messageAI.js';
+import isVideo from '../../utils/isVideo.js';
+import axios from 'axios';
 
 type FileUpload = {
   filename: string;
@@ -69,7 +71,8 @@ const messageResolver = {
           let file = null;
           if (msg.file) {
             const key = msg.file.url.split('/').pop();
-            const presignedUrl = await getPresignedUrl(key);
+            let presignedUrl = await getPresignedUrl(key);
+            if(isVideo(msg.file.url)) presignedUrl = msg.file.url; 
             file = { filename: msg.file.filename, mimetype: msg.file.mimetype, url: presignedUrl };
           }
           var formattedTime: string;
@@ -183,45 +186,58 @@ const messageResolver = {
 
       try {
         const data = await s3.completeMultipartUpload(params).promise();
-        const fileUrl = data.Location;
         const presignedUrl = await getPresignedUrl(data.Key);
-        const newMessage = {
-          id,
-          sender: userName,
-          message: '',
-          file: {
-            filename: fileName,
-            mimetype: 'video/mp4',
-            url: presignedUrl
-          },
-          to
-        };
 
-        pubsub.publish('FILE_ADDED', {
-          showMessages: newMessage,
-          showUsersMessages: newMessage,
-          to,
-          id,
-          isGroup: false
-        });
-
-        await Message.create({
-          sender: id,
-          message: '',
-          to,
-          senderName: userName,
-          file: {
-            filename: fileName,
-            url: fileUrl
-          },
-          type: 'File'
-        });
-
-        return "Message sent successfully";
+        return presignedUrl;
       } catch (error) {
         throw new Error(error?.message ?? "Failed to complete multipart upload.");
       }
     },
+    saveSegment: async (_:any, { presignedUrl, to, fileName }: {presignedUrl: string, to: string, fileName: string}, context: {token: string}) => {
+      const userData: { id: string, userName: string } = await getUserFromToken(context.token);
+      const { id, userName } = userData;
+
+      const findUser = await User.findOne({ _id: to });
+      if(!findUser) {
+        return "Not supported";
+      }
+
+      const newMessage = {
+        id,
+        sender: userName,
+        message: '',
+        file: {
+          fileName,
+          mimetype: 'video/mp4',
+          url: presignedUrl
+        },
+        to
+      };
+
+      const fileUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+
+      pubsub.publish('FILE_ADDED', {
+        showMessages: newMessage,
+        showUsersMessages: newMessage,
+        to,
+        id,
+        isGroup: false
+      });
+
+      await Message.create({
+        sender: id,
+        message: '',
+        to,
+        senderName: userName,
+        file: {
+          filename: fileName,
+          url: fileUrl
+        },
+        type: 'File'
+      });
+
+      return presignedUrl;
+    }
   },
   Subscription: {
     showMessages: {
